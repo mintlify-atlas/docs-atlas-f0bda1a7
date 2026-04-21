@@ -1,0 +1,65 @@
+---
+title: "CC Design routing table: tasks to references and templates"
+description: "SKILL.md's routing table maps 14 task types to reference documents and templates, loading only what's needed to keep context lean and model attention focused."
+---
+
+The routing table is the dispatch layer of CC Design. Instead of loading every reference document into the context window for every task, SKILL.md describes which references and templates apply to each task type — so only the relevant material is loaded. This keeps the context window lean and the model's attention focused.
+
+## The routing table
+
+Classify the user's task by intent, output format, and keywords, then load the matching rows. For tasks that span multiple types, combine all matching rows.
+
+| Task type | Load reference | Copy template | Verify focus |
+|-----------|---------------|---------------|-------------|
+| ANY design task | `references/design-excellence.md` | — | Design quality check |
+| High-quality output needed | `references/design-patterns.md` + `case-studies/README.md` | — | Pattern application |
+| Brand style clone | `references/getdesign-loader.md` + `react-babel-setup.md` | Choose template as needed | Brand aesthetic match |
+| React prototype | `references/react-babel-setup.md` | Needed frame from `templates/` | No console errors |
+| Slide deck | `references/starter-components.md` | `templates/deck_stage.js` | Fixed canvas + scaling |
+| Variant exploration | `references/tweaks-system.md` | `templates/design_canvas.jsx` | Tweaks panel visible |
+| Landing page | `references/starter-components.md` + `references/design-patterns.md` | `templates/browser_window.jsx` (optional) | Responsive layout + no console errors |
+| Animation / motion | `references/starter-components.md` + `react-babel-setup.md` | `templates/animations.jsx` | Timeline playback |
+| Mobile mockup | `references/starter-components.md` + `react-babel-setup.md` + `case-studies/mobile-apps/ios-onboarding.md` | `templates/ios_frame.jsx` or `android_frame.jsx` | Bezel rendering |
+| Interactive prototype | `references/interactive-prototype.md` + `react-babel-setup.md` | Choose frame template as needed | Navigation works + no errors |
+| Wireframe / low-fi | `references/frontend-design.md` | `templates/design_canvas.jsx` | Layout structure visible |
+| Design system creation | `references/design-system-creation.md` | — | Tokens apply + visual coherence |
+| No design system provided | `references/frontend-design.md` + `references/design-excellence.md` | Choose template as needed | Aesthetic coherence |
+| Export (PPTX/PDF/inline) | `references/platform-tools.md` | — | File generated |
+
+## How to read the routing table
+
+**Task classification** happens by intent and keywords. Look at what the user is asking for — the output format ("slide deck", "landing page"), the workflow ("variant exploration", "wireframe"), or the constraint ("no design system provided"). A single user request often matches more than one row.
+
+**The "ANY design task" row always applies.** `design-excellence.md` is loaded for every task without exception. It provides the quality framework — focal point, emotional tone, visual hierarchy — that underpins all other work.
+
+**Multi-type tasks combine rows.** If a user asks for an animated landing page, load from both the "Animation / motion" row and the "Landing page" row: `starter-components.md`, `design-patterns.md`, `react-babel-setup.md`, and the `animations.jsx` template.
+
+**For tasks not in the table**, default to loading `react-babel-setup.md` plus the closest matching component reference.
+
+<Tip>
+When a brand name appears in the request (Stripe, Vercel, Notion, Linear, Apple, Tesla, etc.), treat the task as a "Brand style clone" regardless of what else the user is asking for. Brand detection takes priority.
+</Tip>
+
+## Progressive disclosure
+
+SKILL.md stays under 200 lines. The routing table is the mechanism that makes this possible: instead of embedding all technical content in the main skill definition, references are stored as separate documents and loaded on demand.
+
+This has two practical effects:
+
+- **Context efficiency** — a slide deck task loads `deck_stage.js` and `starter-components.md`, not the mobile mockup frames or the interactive prototype reference.
+- **Maintainability** — adding support for a new task type means adding one row to the routing table and one new reference document, without touching the core workflow.
+
+<Note>
+When adding a new reference document, always add a corresponding row to the routing table in SKILL.md. Without that row, the model has no signal to load the new document.
+</Note>
+
+## Case studies structure
+
+The `references/case-studies/` directory contains real-world design references organized into four subcategories:
+
+- `product-pages/` — landing pages from Stripe, Linear, Notion, and similar products
+- `presentations/` — pitch deck and keynote-style layout references
+- `mobile-apps/` — iOS onboarding patterns and mobile UI references
+- `creative-works/` — creative and expressive design references
+
+The `case-studies/README.md` index is loaded alongside `design-patterns.md` for high-quality output tasks. Individual case study documents (like `ios-onboarding.md`) are loaded by specific rows in the routing table.

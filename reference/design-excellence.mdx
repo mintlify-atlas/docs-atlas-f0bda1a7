@@ -1,0 +1,364 @@
+---
+title: "Design excellence framework: quality rules reference"
+description: "Five hierarchy principles, four emotional tones, composition rules, and a 6-question pre-build checklist — the quality layer loaded for every CC Design task."
+---
+
+The excellence layer — 卓越层 — is what separates technically correct from visually compelling. CC Design loads this reference for every design task where visual quality matters: product pages, presentations, mobile apps, and creative works. The framework gives you concrete decision criteria before you write a single line of HTML, so design choices are intentional rather than accidental.
+
+## Visual hierarchy: the 5 core principles
+
+Visual hierarchy controls where the viewer looks first, second, and third. Without it, everything competes for attention and nothing wins.
+
+<AccordionGroup>
+  <Accordion title="1. Size contrast">
+    The most important element should be significantly larger than supporting elements — not 10% larger, but 2–3x larger. Our eyes are drawn to the largest element first; size equals importance in visual language.
+
+    | Context | Size range |
+    | --- | --- |
+    | Hero headlines (web) | 48–72px |
+    | Hero headlines (slides) | 80–120px |
+    | Body text (web) | 16–18px |
+    | Supporting / caption text | 12–14px |
+
+    Each level should be 1.5–2x the size below it. If nothing is big, nothing is important.
+
+    ```css
+    h1 { font-size: 64px; font-weight: 700; }  /* Hero */
+    h2 { font-size: 32px; font-weight: 600; }  /* Section */
+    p  { font-size: 18px; font-weight: 400; }  /* Body */
+    ```
+  </Accordion>
+
+  <Accordion title="2. Color weight">
+    Use color to create visual weight. Dark = heavy, light = airy. High saturation = attention, low saturation = background. A bright accent color on a neutral field instantly draws the eye.
+
+    | Role | Treatment |
+    | --- | --- |
+    | Primary CTA | High contrast, saturated |
+    | Secondary CTA | Medium contrast, desaturated |
+    | Tertiary / cancel | Low contrast, text-only |
+    | Background | Neutral, low saturation |
+
+    Only one element per section should be "loud". Multiple bright colors cancel each other out.
+
+    ```css
+    .primary-cta   { background: oklch(0.55 0.18 240); color: white; }
+    .secondary-cta { background: oklch(0.90 0.05 240); color: oklch(0.35 0.10 240); }
+    .tertiary-cta  { background: transparent; color: oklch(0.50 0.08 240); }
+    ```
+  </Accordion>
+
+  <Accordion title="3. Position priority">
+    Position communicates importance. Top-left = start here. Center = most important. Bottom-right = least important (in left-to-right cultures). Leverage the natural reading patterns your audience already uses.
+
+    - **F-pattern** (text-heavy pages): eyes move left-to-right at top, then down the left side, then right again
+    - **Z-pattern** (visual pages): top-left → top-right → diagonal → bottom-left → bottom-right
+    - **Center-focus** (presentations): all attention to center, minimal peripheral content
+
+    Primary CTAs belong above the fold in a high-contrast position. The most important content should never be buried below the fold or hidden in a corner.
+  </Accordion>
+
+  <Accordion title="4. Whitespace separation">
+    Whitespace groups related elements and separates unrelated ones. More space equals stronger separation (Gestalt proximity principle). Uniform spacing destroys hierarchy — if everything has the same gap, nothing is grouped.
+
+    ```
+    Tightest → Loosest
+    4px (inline) → 8px (related) → 16px (group) → 32px (section) → 64px (major break)
+    ```
+
+    Space between groups should be 2–3x the space within groups.
+
+    ```css
+    .card-content { padding: 24px; gap: 12px; }  /* Within group */
+    .card { margin-bottom: 32px; }               /* Between cards */
+    .section { margin-bottom: 80px; }            /* Between sections */
+    ```
+  </Accordion>
+
+  <Accordion title="5. Visual flow">
+    Design a deliberate path for the eye to follow: most important → second most important → action. People don't read designs randomly — they follow visual cues (size, color, position, direction). Multiple competing focal points leave the eye with no starting point.
+
+    | Flow pattern | Best for |
+    | --- | --- |
+    | Linear (top → middle → bottom) | Landing pages, presentations |
+    | Circular (center → outward → back) | Dashboards, data visualizations |
+    | Grid (left-to-right, top-to-bottom) | Galleries, product listings |
+
+    Typical linear structure:
+
+    ```
+    1. Hero headline (largest, top-center)
+       ↓
+    2. Supporting text (medium, below headline)
+       ↓
+    3. Visual proof (image, below text)
+       ↓
+    4. CTA button (high contrast, centered)
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Emotional design: the 4 tone profiles
+
+Different contexts require different emotional tones. Choose the right profile before picking colors or fonts.
+
+<Tabs>
+  <Tab title="Trust">
+    **When to use:** Financial services, healthcare, enterprise B2B, legal, insurance
+
+    Reduce cognitive load. Make complex things feel simple and safe.
+
+    | Element | Approach |
+    | --- | --- |
+    | Colors | Blues, grays, deep purples — calm and stable |
+    | Typography | Serif for authority (Source Serif, Instrument Serif); clean sans for clarity (DM Sans) |
+    | Layout | Symmetrical, balanced, generous whitespace |
+    | Imagery | Real people, authentic scenarios, data visualizations |
+    | Motion | Subtle, smooth, purposeful — no flashy animations |
+
+    **Avoid:** bright colors, playful fonts, asymmetric layouts, abstract imagery
+
+    ```css
+    :root {
+      --trust-primary: oklch(0.50 0.15 240);  /* Deep blue */
+      --trust-surface: oklch(0.98 0.01 240);  /* Off-white */
+      --trust-text:    oklch(0.20 0.02 240);  /* Dark blue-gray */
+    }
+    ```
+  </Tab>
+
+  <Tab title="Excitement">
+    **When to use:** Entertainment, gaming, social media, events, consumer products
+
+    Create energy and momentum. Make people feel something.
+
+    | Element | Approach |
+    | --- | --- |
+    | Colors | Vibrant, saturated — reds, oranges, magentas, electric blues |
+    | Typography | Bold geometric display fonts (Space Grotesk, Bricolage Grotesque) |
+    | Layout | Asymmetric, dynamic, overlapping elements, diagonal lines |
+    | Imagery | High energy, motion blur, bold graphics, illustrations |
+    | Motion | Fast, bouncy, playful — spring animations, parallax |
+
+    **Avoid:** muted colors, formal typography, rigid grids, static layouts
+
+    ```css
+    :root {
+      --excitement-primary: oklch(0.60 0.25 25);   /* Vibrant orange */
+      --excitement-accent:  oklch(0.55 0.22 320);  /* Electric magenta */
+      --excitement-bg:      oklch(0.15 0.05 25);   /* Dark warm */
+    }
+    ```
+  </Tab>
+
+  <Tab title="Professional">
+    **When to use:** B2B SaaS, productivity tools, developer tools, business platforms
+
+    Respect the user's time. Clarity over cleverness.
+
+    | Element | Approach |
+    | --- | --- |
+    | Colors | Refined neutrals with a single accent — grays, blacks, one brand color |
+    | Typography | Modern sans-serif (DM Sans, Outfit, Plus Jakarta Sans); monospace for code |
+    | Layout | Grid-based, clean, functional, information-dense but organized |
+    | Imagery | UI screenshots, diagrams, icons, minimal photography |
+    | Motion | Functional, responsive, snappy — no decoration |
+
+    **Avoid:** decorative elements, excessive whitespace, playful language, unnecessary animation
+
+    ```css
+    :root {
+      --pro-primary: oklch(0.55 0.18 260);  /* Refined purple */
+      --pro-surface: oklch(0.97 0.00 0);   /* Pure light gray */
+      --pro-text:    oklch(0.25 0.00 0);   /* Near-black */
+      --pro-border:  oklch(0.85 0.00 0);   /* Light border */
+    }
+    ```
+  </Tab>
+
+  <Tab title="Creative">
+    **When to use:** Portfolios, agencies, art and design showcases, cultural projects
+
+    Break rules intentionally. Show craft and personality.
+
+    | Element | Approach |
+    | --- | --- |
+    | Colors | Unexpected combinations, gradients, duotones, experimental |
+    | Typography | Display fonts, variable fonts, mixed type styles, large scale |
+    | Layout | Broken grids, overlapping layers, unconventional navigation |
+    | Imagery | Original photography, custom illustrations, abstract visuals |
+    | Motion | Experimental, scroll-driven, interactive, surprising |
+
+    **Avoid:** generic templates, stock imagery, predictable layouts, corporate tone
+
+    ```css
+    :root {
+      --creative-primary: oklch(0.65 0.20 150);  /* Unexpected green */
+      --creative-accent:  oklch(0.50 0.25 45);   /* Bold yellow */
+      --creative-bg:      oklch(0.12 0.03 150);  /* Dark moody */
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Composition rules
+
+<AccordionGroup>
+  <Accordion title="Rule of thirds">
+    Divide your canvas into a 3×3 grid. Place important elements along the lines or at intersections. Centered compositions feel static; off-center compositions feel dynamic and natural.
+
+    - Hero images: subject at the 1/3 or 2/3 mark, not dead center
+    - Text + image layouts: text on one 2/3 column, image on the 1/3 column
+    - Focal points: at grid intersections (the 4 "power points")
+
+    **When to break it:** presentations, posters, and hero sections often benefit from centered composition for maximum impact.
+  </Accordion>
+
+  <Accordion title="Visual balance">
+    Heavy elements (dark, large, saturated) need to be balanced by lighter elements or whitespace.
+
+    | Balance type | Character | Best for |
+    | --- | --- | --- |
+    | Symmetrical | Mirror image, formal, stable | Trust, Professional |
+    | Asymmetrical | Unequal but balanced, dynamic | Excitement, Creative |
+    | Radial | Radiates from center, focused | Data viz, dashboards |
+
+    If the left side is heavy (large image), the right side should be lighter (text + whitespace). Dark elements need more surrounding whitespace than light elements.
+  </Accordion>
+
+  <Accordion title="Focal point">
+    Every composition needs one dominant focal point. Everything else supports it. To create a focal point: make it significantly larger, give it the highest contrast, make it the only saturated color in a neutral field, place it at a rule-of-thirds intersection, and surround it with whitespace.
+
+    Pick one hero element per section. Multiple competing focal points split attention and create confusion.
+  </Accordion>
+
+  <Accordion title="Rhythm and repetition">
+    Repeat visual elements to create consistency and pattern recognition. Users learn the visual language quickly when the same card style, button shape, and spacing scale appear throughout.
+
+    Use contrast to create hierarchy and prevent monotony:
+
+    - **Size:** large headline vs small body text
+    - **Weight:** bold vs regular vs light
+    - **Color:** saturated vs desaturated, warm vs cool
+
+    Use progression to guide the eye — gradually change a property to create movement:
+
+    ```css
+    h1 { font-size: 64px; opacity: 1.0; }
+    h2 { font-size: 40px; opacity: 0.9; }
+    h3 { font-size: 28px; opacity: 0.8; }
+    p  { font-size: 18px; opacity: 0.7; }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Pre-build checklist
+
+Answer all six questions before writing any HTML. If you can't answer them, you are not ready to build — design decisions should be intentional, not accidental.
+
+<Steps>
+  <Step title="Focal point">
+    What is the one thing the viewer should notice first?
+  </Step>
+  <Step title="Emotional tone">
+    What emotion should this design evoke — Trust, Excitement, Professional, or Creative?
+  </Step>
+  <Step title="Visual flow">
+    Where does the eye start, move, and end?
+  </Step>
+  <Step title="Spacing strategy">
+    What is the approach — tight groups, loose sections, generous breaks?
+  </Step>
+  <Step title="Color strategy">
+    Neutral base + one accent, or bold multi-color?
+  </Step>
+  <Step title="Typography hierarchy">
+    What are the 3–4 levels, and is there clear size contrast between each?
+  </Step>
+</Steps>
+
+## Common mistakes to avoid
+
+<AccordionGroup>
+  <Accordion title="Hierarchy and focal point mistakes">
+    1. **No clear focal point** — everything competes for attention
+    2. **Insufficient contrast** — everything is "medium" weight
+    3. **Weak typography hierarchy** — headlines only slightly larger than body text
+    4. **Multiple competing focal points** — the eye doesn't know where to start
+  </Accordion>
+
+  <Accordion title="Spacing and layout mistakes">
+    5. **Inconsistent spacing** — random gaps between elements that break the grid
+    6. **Ignoring whitespace** — cramming too much into too little space
+    7. **Burying primary content below the fold** — or hiding it in a corner
+  </Accordion>
+
+  <Accordion title="Color and style mistakes">
+    8. **Too many colors** — more than 3–4 creates visual chaos
+    9. **Inconsistent style** — mixing multiple design languages
+    10. **No emotional direction** — the design feels neutral and forgettable
+  </Accordion>
+
+  <Accordion title="Asset and decoration mistakes">
+    11. **Generic stock imagery** — adds no value, looks like every other site
+    12. **Decorative elements that serve no content purpose** — visual noise
+  </Accordion>
+</AccordionGroup>
+
+## Anti-slop rules
+
+<Warning>
+  CC Design actively avoids patterns that produce generic, recognizable AI output. These are prohibited regardless of context:
+
+  - **Aggressive gradients** — loud multi-stop gradients as backgrounds
+  - **Emoji in design** — unless the brand system explicitly uses them
+  - **Rounded containers with left-border accents** — the canonical AI callout pattern
+  - **Overused fonts** — Inter, Roboto, Arial, Fraunces, and system font stacks have no design identity; use distinctive alternatives from the [font selection table](/reference/design-systems)
+</Warning>
+
+## Context-specific strategies
+
+<Tabs>
+  <Tab title="Product pages">
+    **Goal:** Build trust → explain value → drive conversion
+
+    - **Hero:** large, clear value proposition + visual proof (screenshot, demo)
+    - **Social proof:** logos, testimonials, metrics — early and prominent
+    - **Features:** benefit-focused, scannable, clear visual hierarchy
+    - **CTA:** high contrast, above the fold, repeated at natural decision points
+
+    Default emotional tone: Trust + Professional (or Trust + Excitement for consumer products)
+  </Tab>
+
+  <Tab title="Presentations">
+    **Goal:** Maintain attention → convey key points → create memorable moments
+
+    - One idea per slide — no walls of text
+    - Headline dominates; supporting text is minimal
+    - Vary slide types every 3–5 slides (text, image, data, quote)
+    - Use full-bleed images, bold statements, and surprising data for memorable moments
+    - Text at minimum 24px for 1920×1080 output
+  </Tab>
+
+  <Tab title="Mobile apps">
+    **Goal:** Immediate clarity → effortless interaction → delightful experience
+
+    - Touch targets: minimum 44×44px with generous spacing
+    - Primary actions in the bottom 1/3 of the screen (thumb zone)
+    - Progressive disclosure: show only what is needed, hide complexity
+    - Immediate visual feedback for every interaction
+
+    Default emotional tone: Professional + Excitement
+  </Tab>
+
+  <Tab title="Creative works">
+    **Goal:** Capture attention → evoke emotion → showcase craft
+
+    - Bold choices: unexpected layouts, experimental typography, unique color
+    - Craft details: micro-interactions, custom illustrations, thoughtful motion
+    - Strong point of view and distinctive visual voice
+    - Break conventions intentionally to create "wow" moments
+
+    Default emotional tone: Creative — but grounded in solid fundamentals
+  </Tab>
+</Tabs>

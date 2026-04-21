@@ -1,0 +1,151 @@
+---
+title: "Design intent: 6-question checklist before you build"
+description: "Before writing HTML, CC Design answers 6 intent questions: focal point, emotional tone, visual flow, spacing strategy, color strategy, and typography hierarchy."
+---
+
+Before CC Design writes a single line of HTML, it answers six questions about design intent. These questions are drawn from `references/design-excellence.md` and cover the decisions that most often separate a design that works from one that merely renders. Answering them takes roughly 30 seconds; skipping them reliably produces designs that are technically correct but visually unmemorable, poorly directed, or mismatched to their audience.
+
+## The 6-question checklist
+
+The checklist lives in the "Before You Build" section of `references/design-excellence.md`. CC Design must be able to answer all six before proceeding to the Build step.
+
+<Steps>
+  <Step title="What's the one thing the viewer should notice first?">
+    **Focal point** — Every composition needs one dominant element. If nothing is significantly larger, higher contrast, or more isolated than everything else, the eye has nowhere to start and attention fragments. The focal point is typically set through size (hero headline 2–3× larger than supporting text), contrast (highest contrast element on the page), or isolation (surrounded by whitespace). One hero per section.
+  </Step>
+  <Step title="What emotion should this design evoke?">
+    **Emotional tone** — Choose one of four tones: Trust, Excitement, Professional, or Creative. Each maps to a distinct combination of color palette, typography, layout structure, and motion style. Selecting the wrong tone for the audience produces a design that feels off even when the individual elements are correct. See the emotional tone guide below.
+  </Step>
+  <Step title="What's the visual flow?">
+    **Eye path** — Where does the eye start, where does it move, and where does it end? Three common patterns apply: linear flow (top → middle → bottom, for presentations and landing pages), circular flow (center → outward → back, for dashboards and data visualizations), and grid flow (left-to-right, top-to-bottom, for galleries and product listings). The flow ends at a clear action — a CTA, a next step, a conclusion.
+  </Step>
+  <Step title="What's the spacing strategy?">
+    **Spacing hierarchy** — Consistent spacing is not the same as correct spacing. Spacing communicates grouping: related elements sit close together, unrelated elements are pushed apart. The spacing scale from `design-excellence.md`:
+
+    ```css
+    /* Tightest → Loosest */
+    4px  /* inline elements */
+    8px  /* related elements */
+    16px /* within a group */
+    32px /* between groups */
+    64px /* major section breaks */
+    ```
+
+    Space between groups should be 2–3× the space within groups. Using the same gap everywhere collapses the hierarchy.
+  </Step>
+  <Step title="What's the color strategy?">
+    **Color palette** — Two dominant strategies: a neutral base with one saturated accent (lower risk, suits professional and trust contexts), or a bold multi-color palette (suits excitement and creative contexts). Only one element per section should be "loud." Using multiple saturated colors simultaneously dilutes all of them. CC Design uses `oklch` for colors not covered by the design system to ensure perceptual consistency:
+
+    ```css
+    .primary-cta   { background: oklch(0.55 0.18 240); color: white; }
+    .secondary-cta { background: oklch(0.90 0.05 240); color: oklch(0.35 0.10 240); }
+    .tertiary-cta  { background: transparent; color: oklch(0.50 0.08 240); }
+    ```
+  </Step>
+  <Step title="What's the typography hierarchy?">
+    **Type scale** — Three to four levels maximum, with clear size contrast between each level. The ratio rule: each level should be 1.5–2× the size below it. A hero headline at 64px and body text at 60px is not a hierarchy — it is noise.
+
+    ```css
+    h1 { font-size: 64px; font-weight: 700; } /* Hero */
+    h2 { font-size: 32px; font-weight: 600; } /* Section */
+    p  { font-size: 18px; font-weight: 400; } /* Body */
+    ```
+
+    For slides: text ≥24px at 1920×1080. For print: ≥12pt. For mobile: touch targets ≥44px.
+  </Step>
+</Steps>
+
+<Note>
+  If CC Design cannot answer all six questions from the prompt and available context, it will ask before building. Design decisions should be intentional, not accidental.
+</Note>
+
+## Emotional tone guide
+
+The emotional tone answer (question 2) determines a large portion of the design's visual character. Each tone has specific visual characteristics and contexts where it is appropriate.
+
+<CardGroup cols={2}>
+  <Card title="Trust" icon="shield-check">
+    **Use for:** Financial services, healthcare, enterprise B2B, legal, insurance
+
+    Blues, grays, and deep purples. Serif fonts for authority (Source Serif, Instrument Serif); clean sans-serif for clarity (DM Sans). Symmetrical, balanced layouts with generous whitespace. Subtle, smooth motion — no flashy animations.
+
+    ```css
+    :root {
+      --trust-primary: oklch(0.50 0.15 240); /* Deep blue */
+      --trust-surface: oklch(0.98 0.01 240); /* Off-white */
+      --trust-text:    oklch(0.20 0.02 240); /* Dark blue-gray */
+    }
+    ```
+  </Card>
+  <Card title="Excitement" icon="zap">
+    **Use for:** Entertainment, gaming, social media, events, consumer products
+
+    Vibrant, saturated colors — reds, oranges, magentas, electric blues. Bold geometric display fonts (Space Grotesk, Bricolage Grotesque). Asymmetric, dynamic layouts with overlapping elements and diagonal lines. Fast, bouncy, playful motion.
+
+    ```css
+    :root {
+      --excitement-primary: oklch(0.60 0.25 25);  /* Vibrant orange */
+      --excitement-accent:  oklch(0.55 0.22 320); /* Electric magenta */
+      --excitement-bg:      oklch(0.15 0.05 25);  /* Dark warm */
+    }
+    ```
+  </Card>
+  <Card title="Professional" icon="briefcase">
+    **Use for:** B2B SaaS, productivity tools, developer tools, business platforms
+
+    Refined neutrals with a single accent — grays, blacks, one brand color. Modern sans-serif fonts (DM Sans, Outfit, Plus Jakarta Sans), monospace for code. Grid-based, clean, information-dense but organized. Functional, snappy motion — no decorative animation.
+
+    ```css
+    :root {
+      --pro-primary: oklch(0.55 0.18 260); /* Refined purple */
+      --pro-surface: oklch(0.97 0.00 0);   /* Pure light gray */
+      --pro-text:    oklch(0.25 0.00 0);   /* Near-black */
+      --pro-border:  oklch(0.85 0.00 0);   /* Light border */
+    }
+    ```
+  </Card>
+  <Card title="Creative" icon="palette">
+    **Use for:** Portfolios, agencies, art and design showcases, cultural projects
+
+    Unexpected color combinations, gradients, duotones. Display fonts, variable fonts, mixed type styles at large scale. Broken grids, overlapping layers, unconventional navigation. Experimental, scroll-driven, interactive motion.
+
+    ```css
+    :root {
+      --creative-primary: oklch(0.65 0.20 150); /* Unexpected green */
+      --creative-accent:  oklch(0.50 0.25 45);  /* Bold yellow */
+      --creative-bg:      oklch(0.12 0.03 150); /* Dark moody */
+    }
+    ```
+  </Card>
+</CardGroup>
+
+## Content guidelines that apply at this step
+
+The design intent step is also when CC Design establishes content rules. These apply throughout the Build step.
+
+<AccordionGroup>
+  <Accordion title="No filler content">
+    Every element earns its place. Lorem ipsum, generic icons, and decorative dividers that serve no communicative purpose are excluded. Less is more.
+  </Accordion>
+  <Accordion title="Ask before adding material">
+    If the prompt does not specify content — testimonials, feature lists, team members, pricing tiers — CC Design asks before inventing it. The user knows their audience better.
+  </Accordion>
+  <Accordion title="Establish a layout system upfront">
+    After reviewing assets, CC Design vocalizes the grid, spacing, and section approach. Section transitions use different background treatments; full-bleed images are used when imagery is central to the communication.
+  </Accordion>
+  <Accordion title="Anti-slop rules">
+    CC Design avoids the following patterns that signal AI-generated design rather than intentional craft:
+
+    - Aggressive gradients applied to large background areas
+    - Emoji in designs unless the brand's design system uses them
+    - Rounded-corner containers with left-border color accents (the "callout card" cliché)
+    - SVG imagery attempted from scratch — a clean placeholder beats a bad render
+    - Overused fonts: Inter, Roboto, Arial, Fraunces, and system font stacks without a clear reason
+  </Accordion>
+  <Accordion title="Give 3+ variations">
+    CC Design produces at least three variations across layout, interaction style, visual intensity, and motion. Variations mix by-the-book approaches with more novel ones. When possible, they are exposed as tweaks in a single file rather than as separate deliverables.
+  </Accordion>
+  <Accordion title="Placeholder over bad asset">
+    If an icon or image is needed but not available, a clean placeholder is drawn instead. A well-proportioned placeholder communicates intent without misleading the viewer about final quality.
+  </Accordion>
+</AccordionGroup>

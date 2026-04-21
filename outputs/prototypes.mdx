@@ -1,0 +1,127 @@
+---
+title: "Build interactive HTML prototypes with inline React"
+description: "CC Design builds single-file HTML prototypes with inline React + Babel, pinned CDN versions, real state management, multi-screen routing, and keyboard support."
+---
+
+Interactive prototypes in CC Design are self-contained HTML files that run React entirely in the browser — no build step, no Node.js. Babel transpiles JSX at runtime from CDN-loaded scripts, so you get real component state, multi-screen navigation, and keyboard interactions in a single deliverable file you can open directly.
+
+## How CC Design builds prototypes
+
+When you ask for an interactive prototype, CC Design loads two references and picks an appropriate frame template:
+
+- **`references/react-babel-setup.md`** — pinned CDN versions of React 18.3.1, ReactDOM 18.3.1, and Babel standalone 7.29.0, each with SRI integrity hashes to prevent runtime breakage
+- **`references/interactive-prototype.md`** — navigation patterns (tab bar, sidebar, wizard), state management strategies, page transitions, and the full prototype HTML structure
+
+The frame template depends on what you're building. A mobile prototype uses `ios_frame.jsx` or `android_frame.jsx`. A desktop app prototype uses `browser_window.jsx` or `macos_window.jsx`. A standalone web prototype uses no frame.
+
+<Note>
+  CC Design always uses pinned versions with integrity hashes — never `react@18` or bare unpkg URLs without hashes. This prevents silent breakage when CDN packages update.
+</Note>
+
+## Pinned CDN scripts
+
+Every React prototype uses these exact script tags:
+
+```html
+<script
+  src="https://unpkg.com/react@18.3.1/umd/react.development.js"
+  integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L"
+  crossorigin="anonymous"
+></script>
+<script
+  src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"
+  integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm"
+  crossorigin="anonymous"
+></script>
+<script
+  src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"
+  integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y"
+  crossorigin="anonymous"
+></script>
+```
+
+## Navigation patterns
+
+CC Design picks from three navigation patterns based on the app type:
+
+<CardGroup cols={3}>
+  <Card title="Tab bar" icon="layout-grid">
+    3–5 main sections. Rendered at the bottom of a mobile frame or top of a desktop app. State-driven with `useState` for the active tab index.
+  </Card>
+  <Card title="Sidebar" icon="panel-left">
+    5+ sections, desktop dashboards. Fixed 240px wide column with `useReducer` for complex screen + form state.
+  </Card>
+  <Card title="Wizard / step flow" icon="arrow-right">
+    Forms, onboarding, checkout. Progress bar renders step count. Supports Back / Next and hash routing so the browser back button works.
+  </Card>
+</CardGroup>
+
+## State management
+
+| Complexity | Pattern | When to use |
+|---|---|---|
+| 2–3 screens | `useState` for active screen index | Tab bar, simple nav |
+| 5+ screens | `useReducer` with screen + form state | Wizards, multi-step forms |
+| URL sync needed | Hash routing | Back button should work, or sharing specific screen URLs |
+
+Hash routing lets each screen have a bookmarkable URL:
+
+```js
+const [screen, setScreen] = React.useState(location.hash.slice(1) || 'home');
+
+React.useEffect(() => {
+  const onHash = () => setScreen(location.hash.slice(1) || 'home');
+  window.addEventListener('hashchange', onHash);
+  return () => window.removeEventListener('hashchange', onHash);
+}, []);
+
+// Navigate to a screen:
+location.hash = '#settings';
+```
+
+## Multi-file scope rules
+
+When a prototype is split across multiple `.jsx` files (e.g. a shared component file plus a main app file), each `<script type="text/babel">` gets its own scope when Babel transpiles it. Components defined in one file are invisible to the others unless explicitly exported to `window`:
+
+```js
+// At the end of components.jsx:
+Object.assign(window, {
+  Sidebar, TabBar, Avatar, Badge,
+  // ... all components that other files need
+});
+```
+
+Also give every style object a unique name — if two files both declare `const styles = { ... }`, the second one overwrites the first:
+
+```js
+// Good
+const sidebarStyles = { width: '240px', ... };
+
+// Bad — breaks when a second component file does the same
+const styles = { width: '240px', ... };
+```
+
+## Example prompts
+
+```
+Interactive prototype of a chat interface
+```
+
+```
+Linear-style issue tracker with keyboard shortcuts
+```
+
+The Linear example produces an issue list with keyboard shortcut navigation (`j`/`k` to move between issues, `e` to edit, `Cmd+K` for the command palette), sidebar navigation, and issue detail panels — matching Linear's Inter font and purple accent palette when the brand is detected.
+
+## Verification before delivery
+
+Before handing off a prototype, CC Design runs a console error check in the browser and verifies that:
+
+- Navigation between all screens works without errors
+- No React key warnings appear in the console
+- Screen transitions animate correctly
+- Keyboard shortcuts (if any) fire on the correct elements
+
+<Warning>
+  If the browser console shows errors, the prototype is not ready to deliver. CC Design re-enters the build step to fix all errors before marking the task complete.
+</Warning>

@@ -1,0 +1,119 @@
+---
+title: "CC Design: High-fidelity HTML design for Claude Code"
+description: "CC Design embeds into Claude Code to produce HTML prototypes, decks, and mockups via a 7-step workflow with Playwright verification and 68+ brand systems."
+---
+
+CC Design is a skill that embeds directly into Claude Code — not a standalone tool you run separately. Once installed, it turns your AI agent into an expert product designer capable of producing polished HTML artifacts: interactive prototypes, slide decks, landing pages, UI mockups, motion studies, and more. It adapts the Claude Artifacts design environment to work natively in Claude Code, using Playwright MCP for screenshot verification and local Node.js scripts for export.
+
+## Core design principles
+
+CC Design is built around two principles that shape how it behaves on every request:
+
+**Context-first design** means CC Design never designs from scratch when existing brand systems, component libraries, or product code are available. Before writing any HTML, it searches your workspace for design system files, token definitions, and existing components — then reuses that visual vocabulary. If you mention a brand name, it loads that brand's full design system before building anything.
+
+**Progressive disclosure** keeps the main skill definition concise (under 200 lines) while 12+ technical reference documents are loaded on demand. This minimizes context window usage: only the references relevant to your specific task type are pulled in for each request.
+
+## Features
+
+| Category | Capabilities |
+|---|---|
+| **Output formats** | Interactive prototypes, slide decks, landing pages, UI mockups, animated motion studies, wireframes, design systems |
+| **Brand style cloning** | Progressive loading of 68+ brand design systems from [getdesign.md](https://getdesign.md) (Stripe, Vercel, Notion, Linear, Apple, and more) |
+| **Design patterns** | Curated catalog of proven layout patterns with case studies from Stripe, Linear, Notion, and more |
+| **Quality framework** | Built-in design excellence checks with emotional tone targeting, hierarchy checks, and anti-slop rules |
+| **Variations** | Generates 3+ design directions across layout, interaction, visual intensity, and motion axes |
+| **Prototyping** | React + Babel inline JSX with pinned versions, component scope management, and starter scaffolds |
+| **Tweaks system** | Self-contained in-page design controls with real-time preview and `localStorage` persistence |
+| **Verification** | Three-phase verification (structural, visual, design excellence) via Playwright MCP |
+| **Export** | PPTX, PDF, and self-contained inline HTML via local Node.js scripts |
+
+## Project structure
+
+The repository lives at `~/.claude/skills/cc-design/` after installation. Key paths:
+
+```
+cc-design/
+├── SKILL.md                              # Skill definition (YAML frontmatter + workflow)
+├── EXAMPLES.md                           # Usage examples and advanced workflows
+├── agents/
+│   └── openai.yaml                       # Codex-compatible platform interface config
+├── references/
+│   ├── design-excellence.md              # Quality framework, emotional tones, anti-slop rules
+│   ├── design-patterns.md                # Proven layout patterns and component patterns
+│   ├── frontend-design.md                # General frontend design fundamentals
+│   ├── design-system-creation.md         # Creating design systems from scratch
+│   ├── getdesign-loader.md               # Brand style loading from getdesign.md
+│   ├── react-babel-setup.md              # React/Babel pinned versions and scope rules
+│   ├── starter-components.md             # Starter component catalog and usage
+│   ├── interactive-prototype.md          # Interactive prototype patterns
+│   ├── tweaks-system.md                  # In-page tweak controls
+│   ├── platform-tools.md                 # Playwright tool reference
+│   ├── verification-protocol.md          # Three-phase verification protocol
+│   ├── question-protocol.md              # Structured clarifying question templates
+│   └── case-studies/                     # Real-world design references
+├── templates/                            # Starter component files
+│   ├── deck_stage.js                     # Slide presentation stage
+│   ├── design_canvas.jsx                 # Side-by-side option grid
+│   ├── ios_frame.jsx                     # iPhone device frame
+│   ├── android_frame.jsx                 # Android device frame
+│   ├── macos_window.jsx                  # macOS window chrome
+│   ├── browser_window.jsx                # Browser window chrome
+│   └── animations.jsx                    # Timeline animation engine
+└── scripts/                              # Export utility scripts
+    ├── package.json
+    ├── gen_pptx.js                       # HTML → PPTX export
+    ├── super_inline_html.js              # HTML + assets → single file
+    └── open_for_print.js                 # HTML → PDF via Playwright
+```
+
+## Architecture
+
+`SKILL.md` is always loaded into the context window. It contains the routing table, workflow steps, output contracts, and content guidelines. Everything else is loaded on demand.
+
+```
+┌─────────────────────────────────────┐
+│           SKILL.md                  │  ← Always loaded into context
+│  Routing table, workflow, rules,    │
+│  content guidelines, contracts      │
+└──────────────┬──────────────────────┘
+               │  Loaded on demand per routing table
+       ┌───────┴────────┐
+       ▼                ▼
+┌──────────────┐  ┌──────────────┐
+│ references/  │  │ templates/   │
+│ 12 docs +    │  │ (copied to   │
+│ case-studies │  │  project)    │
+└──────────────┘  └──────────────┘
+                        │
+                ┌───────┴────────┐
+                ▼                ▼
+         ┌──────────────┐  ┌──────────────┐
+         │  scripts/    │  │  agents/     │
+         │  (export     │  │  (platform   │
+         │   tools)     │  │   config)    │
+         └──────────────┘  └──────────────┘
+```
+
+When you send a design request, CC Design classifies the task type, reads the routing table to identify which references and templates are needed, loads only those files, and begins the workflow. This keeps context window usage proportional to the task rather than loading everything upfront.
+
+## Compatibility
+
+| Platform | Status | Notes |
+|---|---|---|
+| Claude Code (CLI) | **Primary target** | Playwright MCP + local scripts |
+| Codex / OpenAI-compatible | Supported | Prompt metadata in `agents/openai.yaml` |
+
+<Note>
+  Playwright MCP is required for screenshot-based verification. The export scripts (`gen_pptx.js`, `open_for_print.js`, `super_inline_html.js`) require Node.js and are optional — the skill produces valid HTML without them.
+</Note>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Clone the repository and install export dependencies.
+  </Card>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Send your first design prompt in under 5 minutes.
+  </Card>
+</CardGroup>

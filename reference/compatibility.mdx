@@ -1,0 +1,88 @@
+---
+title: "Platform compatibility and OpenAI agent configuration"
+description: "CC Design runs on Claude Code CLI as its primary target, with Codex and OpenAI-compatible platforms supported via the agents/openai.yaml configuration file."
+---
+
+CC Design is built for Claude Code and relies on Playwright MCP for screenshot-based verification. A separate configuration file makes the skill usable on Codex and other OpenAI-compatible platforms, with graceful degradation for features that depend on Playwright.
+
+## Platform compatibility
+
+| Platform | Status | Notes |
+|----------|--------|-------|
+| Claude Code (CLI) | Primary target | Playwright MCP + local scripts |
+| Codex / OpenAI-compatible | Supported | Prompt metadata in `agents/openai.yaml` |
+
+## OpenAI agent configuration
+
+The `agents/openai.yaml` file provides prompt metadata for Codex-compatible platform interfaces. It sets the display name, a short description, and a default prompt that activates the skill with a well-formed starting instruction:
+
+```yaml
+interface:
+  display_name: "CC Design"
+  short_description: "High-fidelity HTML design and prototype guidance"
+  default_prompt: "Use $cc-design to explore three strong HTML-based design directions for this feature, grounded in the existing product style."
+```
+
+The `default_prompt` is designed to prime three things at once: skill invocation (`$cc-design`), the expectation of multiple directions, and the instruction to ground work in existing product style rather than designing from scratch.
+
+## Allowed tools
+
+SKILL.md declares an explicit list of tools the skill is permitted to use. This list includes the standard Claude Code file tools, a question tool, and all ten Playwright MCP browser tools:
+
+- `Read`, `Write`, `Edit`, `Glob`, `Grep`, `Bash`, `AskUserQuestion`, `Skill`
+- `mcp__playwright__browser_navigate`
+- `mcp__playwright__browser_take_screenshot`
+- `mcp__playwright__browser_snapshot`
+- `mcp__playwright__browser_evaluate`
+- `mcp__playwright__browser_console_messages`
+- `mcp__playwright__browser_run_code`
+- `mcp__playwright__browser_tabs`
+- `mcp__playwright__browser_click`
+- `mcp__playwright__browser_type`
+- `mcp__playwright__browser_press_key`
+- `mcp__playwright__browser_wait_for`
+
+## Playwright MCP dependency
+
+Playwright MCP is required for the verification phase of the design workflow. The three-phase verification (structural, visual, design excellence) depends on `browser_navigate`, `browser_console_messages`, and `browser_take_screenshot` to open an HTML file, check for console errors, and capture a screenshot.
+
+<Warning>
+Playwright MCP must be installed and configured in Claude Code for full CC Design functionality. Without it, the verification phase cannot run and output contracts cannot be confirmed.
+</Warning>
+
+**Installing Playwright MCP for Claude Code:**
+
+```bash
+# Install the export scripts' Node dependencies
+cd ~/.claude/skills/cc-design/scripts && npm install && cd -
+
+# Install the Chromium browser binary for Playwright-backed export
+npx playwright install chromium
+```
+
+## What works without Playwright MCP
+
+Playwright MCP is required only for verification and Playwright-backed export. The rest of the skill works without it:
+
+- Building HTML artifacts using any template
+- Loading brand style systems via `getdesign-loader.md`
+- Applying design patterns and component references
+- Generating PPTX with `--mode editable` (no Playwright required)
+- Producing self-contained inline HTML via `super_inline_html.js`
+
+<Note>
+On Codex-style platforms without Playwright MCP, the model falls back to the Codex-style equivalents described in `references/platform-tools.md` — host preview tools, screenshot tools, and built-in export — where available.
+</Note>
+
+## Contributing
+
+When contributing to CC Design, keep the following guidelines in mind:
+
+- Keep `SKILL.md` under 200 lines — move new technical content to `references/`
+- Add case studies under `references/case-studies/` with subcategory folders (`product-pages/`, `presentations/`, `mobile-apps/`, `creative-works/`)
+- When adding a new reference document, add a corresponding row to the routing table in `SKILL.md`
+- Test changes with representative design prompts before opening a pull request
+
+<Tip>
+The 200-line limit on SKILL.md is a design constraint, not just a style preference. It enforces the progressive disclosure principle: the routing table stays navigable, and reference documents stay focused on a single topic.
+</Tip>

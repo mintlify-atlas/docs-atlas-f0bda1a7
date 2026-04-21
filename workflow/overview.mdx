@@ -1,0 +1,88 @@
+---
+title: "CC Design workflow: from prompt to verified artifact"
+description: "The CC Design 7-step pipeline: clarify, route, acquire context, set intent, build, verify, and deliver — with six output contracts enforced before handoff."
+---
+
+CC Design follows a structured 7-step pipeline every time it generates a design artifact. Each step has a defined purpose and exit condition — the workflow does not advance until the current step's criteria are satisfied. This prevents the most common design failures: building the wrong thing, skipping visual quality checks, and delivering artifacts with broken code or broken layouts.
+
+## The 7-step pipeline
+
+<Steps>
+  <Step title="Understand">
+    CC Design asks clarifying questions via `AskUserQuestion` to establish output format, fidelity level, number of variations, constraints, and any existing design systems. It also **scans the prompt for brand names** — if Stripe, Vercel, Notion, Linear, Apple, Tesla, or any other supported brand is mentioned, the task is automatically classified as a "Brand style clone." If scope remains unclear after initial review, the structured question templates from `references/question-protocol.md` are loaded to converge on scope within 1–2 question rounds.
+  </Step>
+  <Step title="Route">
+    CC Design reads the routing table to classify the task and identify which references and templates are needed. Only the relevant references are loaded — this keeps context focused and prevents template collision. Templates are copied from the skill's `templates/` directory into the project directory:
+
+    ```bash
+    cp <skill-dir>/templates/<component>.<ext> ./<component>.<ext>
+    ```
+
+    For tasks that span multiple types (e.g., a brand-styled slide deck), all matching rows of the routing table are combined.
+  </Step>
+  <Step title="Acquire context">
+    CC Design searches the workspace for existing design system files: `DESIGN.md`, token files, and existing HTML or CSS. If a project design system is found, its visual vocabulary — colors, typography, spacing, component patterns — is read and reused. If none exists, CC Design asks the user for a starting point rather than inventing one.
+  </Step>
+  <Step title="Design intent">
+    Before writing any code, CC Design answers the 6-question design intent checklist from `references/design-excellence.md`. The checklist covers focal point, emotional tone, visual flow, spacing strategy, color strategy, and typography hierarchy. This step takes roughly 30 seconds and prevents hours of iteration by making design decisions intentional rather than accidental. See [Design intent](/workflow/design-intent) for the full checklist.
+  </Step>
+  <Step title="Build">
+    CC Design writes the HTML file, applying design patterns from `references/design-patterns.md` for proven layouts. React components are embedded where needed using the pinned versions and scope rules from `references/react-babel-setup.md`. Multiple variations are exposed as tweaks within a single file rather than as separate files. The build step shows output early and iterates — placeholders are preferred over bad assets.
+  </Step>
+  <Step title="Verify">
+    CC Design loads `references/verification-protocol.md` and runs three sequential verification phases: structural, visual, and design excellence. If any phase fails, control returns to the Build step. The verify–fix loop repeats until all three phases pass. See [Verification](/workflow/verification) for the full protocol.
+  </Step>
+  <Step title="Deliver">
+    The verified file is handed off. CC Design summarizes caveats and next steps in one brief paragraph. Every delivered artifact must satisfy the output contracts below before this step is reached.
+  </Step>
+</Steps>
+
+## Routing table
+
+The routing table maps task types to the references and templates that must be loaded. For multi-type tasks, all matching rows are combined. Tasks not in the table default to loading `react-babel-setup` plus the closest matching component reference.
+
+| Task type | Reference(s) loaded | Template | Verification focus |
+|---|---|---|---|
+| Any design task | `design-excellence.md` | — | Design quality check |
+| High-quality output | `design-patterns.md` + `case-studies/README.md` | — | Pattern application |
+| Brand style clone | `getdesign-loader.md` + `react-babel-setup.md` | As needed | Brand aesthetic match |
+| React prototype | `react-babel-setup.md` | From `templates/` | No console errors |
+| Slide deck | `starter-components.md` | `deck_stage.js` | Fixed canvas + scaling |
+| Variant exploration | `tweaks-system.md` | `design_canvas.jsx` | Tweaks panel visible |
+| Landing page | `starter-components.md` + `design-patterns.md` | `browser_window.jsx` (optional) | Responsive + no errors |
+| Animation / motion | `starter-components.md` + `react-babel-setup.md` | `animations.jsx` | Timeline playback |
+| Mobile mockup | `starter-components.md` + `react-babel-setup.md` + `ios-onboarding.md` | `ios_frame.jsx` or `android_frame.jsx` | Bezel rendering |
+| Interactive prototype | `interactive-prototype.md` + `react-babel-setup.md` | As needed | Navigation + no errors |
+| Wireframe / low-fi | `frontend-design.md` | `design_canvas.jsx` | Layout structure visible |
+| Design system creation | `design-system-creation.md` | — | Tokens apply + coherence |
+| No design system | `frontend-design.md` + `design-excellence.md` | As needed | Aesthetic coherence |
+| Export (PPTX/PDF) | `platform-tools.md` | — | File generated |
+
+<Note>
+  The routing step loads only what is needed. Loading unnecessary references increases context size without improving output quality.
+</Note>
+
+## Output contracts
+
+Every artifact CC Design delivers must satisfy all six output contracts. These are evaluated during the Verify step — a failed contract sends control back to Build, not to Deliver.
+
+<CardGroup cols={2}>
+  <Card title="No console errors" icon="terminal">
+    Zero JavaScript errors in the browser console before delivery. Checked with `browser_console_messages` at level `error`.
+  </Card>
+  <Card title="Screenshot verified" icon="image">
+    CC Design has taken and reviewed a screenshot of the rendered artifact before handing it off. It has seen the output.
+  </Card>
+  <Card title="Descriptive filename" icon="file">
+    Files are named to describe their content: `Landing Page.html`, `Pitch Deck.html` — never `untitled.html` or `output.html`.
+  </Card>
+  <Card title="Fixed-size content scales" icon="maximize">
+    Slide decks and presentations use the `deck_stage` template for proper letterboxing. Content fills the intended viewport without overflow.
+  </Card>
+  <Card title="Tweaks panel present" icon="sliders">
+    When multiple variants exist, they are exposed as tweaks in a single file — not as separate files. The tweaks toggle is visible and functional.
+  </Card>
+  <Card title="Design quality" icon="sparkles">
+    Clear visual hierarchy, intentional spacing, harmonious colors, and an appropriate emotional tone matched to the audience and context.
+  </Card>
+</CardGroup>

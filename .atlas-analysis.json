@@ -1,0 +1,116 @@
+{
+  "projectType": "general",
+  "projectName": "CC Design",
+  "projectDescription": "A Claude Code skill that enables AI agents to produce high-fidelity HTML design artifacts — slide decks, interactive prototypes, landing pages, UI mockups, animations, and brand style clones — through a structured design workflow with screenshot-based verification.",
+  "theme": "willow",
+  "primaryColor": "#7C3AED",
+  "lightColor": "#EDE9FE",
+  "darkColor": "#4C1D95",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Design Workflow",
+            "pages": [
+              "workflow/overview",
+              "workflow/brand-style-cloning",
+              "workflow/design-intent",
+              "workflow/verification"
+            ]
+          },
+          {
+            "group": "Output Types",
+            "pages": [
+              "outputs/prototypes",
+              "outputs/slide-decks",
+              "outputs/landing-pages",
+              "outputs/mobile-mockups",
+              "outputs/animations"
+            ]
+          },
+          {
+            "group": "Export & Delivery",
+            "pages": [
+              "export/overview",
+              "export/pptx",
+              "export/pdf",
+              "export/inline-html"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Reference",
+        "groups": [
+          {
+            "group": "Design Principles",
+            "pages": [
+              "reference/design-excellence",
+              "reference/design-patterns",
+              "reference/design-systems"
+            ]
+          },
+          {
+            "group": "Technical Reference",
+            "pages": [
+              "reference/react-babel-setup",
+              "reference/templates",
+              "reference/tweaks-system",
+              "reference/platform-tools"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "reference/routing-table",
+              "reference/compatibility"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Structured 7-step design workflow: Understand → Route → Acquire Context → Design Intent → Build → Verify → Deliver",
+    "Progressive loading of 68+ brand design systems from getdesign.md (Stripe, Vercel, Apple, Tesla, etc.)",
+    "Three-phase verification via Playwright MCP (structural, visual, design excellence)",
+    "React + Babel inline JSX prototyping with pinned versions and component scope management",
+    "In-page tweaks system for real-time design variant exploration with localStorage persistence",
+    "Export to PPTX, PDF, and self-contained inline HTML via Node.js scripts",
+    "7 starter templates: slide deck, design canvas, iOS/Android frames, macOS/browser chrome, animations",
+    "12+ on-demand reference documents for minimal context window usage",
+    "Design excellence quality framework with emotional tone targeting and anti-slop rules",
+    "Compatible with Claude Code (primary) and OpenAI/Codex-compatible platforms"
+  ],
+  "publicApiSurface": [
+    "SKILL.md — skill definition loaded into Claude Code context",
+    "Routing table — maps task types to references and templates",
+    "templates/deck_stage.js — slide presentation stage template",
+    "templates/design_canvas.jsx — side-by-side option grid template",
+    "templates/ios_frame.jsx — iPhone device frame template",
+    "templates/android_frame.jsx — Android device frame template",
+    "templates/macos_window.jsx — macOS window chrome template",
+    "templates/browser_window.jsx — browser window chrome template",
+    "templates/animations.jsx — timeline animation engine template",
+    "scripts/gen_pptx.js — HTML to PPTX export script",
+    "scripts/super_inline_html.js — HTML + assets to single inline file",
+    "scripts/open_for_print.js — HTML to PDF via Playwright",
+    "references/design-excellence.md — visual quality framework and checklist",
+    "references/design-patterns.md — proven layout patterns catalog",
+    "references/getdesign-loader.md — brand style loading workflow",
+    "references/react-babel-setup.md — React/Babel pinned versions and scope rules",
+    "references/tweaks-system.md — in-page design controls specification",
+    "references/verification-protocol.md — three-phase verification protocol",
+    "agents/openai.yaml — Codex/OpenAI-compatible platform configuration"
+  ]
+}

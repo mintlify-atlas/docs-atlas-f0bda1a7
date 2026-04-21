@@ -1,0 +1,174 @@
+---
+title: "Tweaks system: real-time in-page design variant panel"
+description: "The tweaks panel embeds in HTML output as a floating gear button for real-time variant switching with localStorage persistence — all variants in one file."
+---
+
+The tweaks system is a self-contained control panel embedded directly in the HTML prototype. Instead of generating a separate file for each design variant, you expose design parameters — colors, font sizes, spacing density, layout modes, copy options — as sliders, selectors, and toggles inside a floating panel. The panel persists its state across page reloads via `localStorage`, so you can return to an adjusted design without re-applying changes.
+
+## What the tweaks panel looks like
+
+The panel is a fixed-position overlay in the bottom-right corner. It stays hidden until the user clicks the gear button, keeping the design surface clean. When open, it shows a compact set of controls that immediately apply to the live prototype.
+
+The canonical panel structure:
+
+```html
+<style>
+  #tweaks-toggle {
+    position: fixed; bottom: 20px; right: 20px; z-index: 9999;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: #1a1a1a; color: #fff; border: none;
+    font-size: 20px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    display: flex; align-items: center; justify-content: center;
+  }
+  #tweaks-panel {
+    position: fixed; bottom: 74px; right: 20px; z-index: 9998;
+    width: 280px; max-height: 60vh; overflow-y: auto;
+    background: #1a1a1a; color: #e0e0e0; border-radius: 12px;
+    padding: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    display: none; font-family: system-ui, sans-serif; font-size: 13px;
+  }
+  #tweaks-panel.visible { display: block; }
+  #tweaks-panel label { display: block; margin-bottom: 10px; }
+  #tweaks-panel input[type="color"] { width: 40px; height: 28px; border: none; cursor: pointer; }
+  #tweaks-panel input[type="range"] { width: 100%; }
+  #tweaks-panel select { width: 100%; padding: 4px; }
+</style>
+
+<button id="tweaks-toggle" title="Tweaks">⚙</button>
+<div id="tweaks-panel">
+  <h3 style="margin:0 0 12px; font-size:14px; color:#fff;">Tweaks</h3>
+  <!-- Add your tweak controls here -->
+</div>
+```
+
+Always title the panel **"Tweaks"** so naming is consistent across prototypes.
+
+## How it works
+
+### Toggle logic with localStorage persistence
+
+The panel visibility state is stored in `localStorage` under the key `cc-tweaks-visible`, so the panel stays open or closed between page reloads:
+
+```js
+const toggle = document.getElementById('tweaks-toggle');
+const panel = document.getElementById('tweaks-panel');
+
+// Restore visibility from localStorage
+const tweaksVisible = localStorage.getItem('cc-tweaks-visible') === 'true';
+if (tweaksVisible) panel.classList.add('visible');
+
+toggle.addEventListener('click', () => {
+  panel.classList.toggle('visible');
+  localStorage.setItem('cc-tweaks-visible', panel.classList.contains('visible'));
+});
+```
+
+### Default values with persistence
+
+Design parameters live in a `TWEAK_DEFAULTS` object wrapped in `EDITMODE-BEGIN` / `EDITMODE-END` comment markers. CC Design uses these markers to find and update default values via the `Edit` tool without touching surrounding code.
+
+<Warning>
+The block between `EDITMODE-BEGIN` and `EDITMODE-END` must be valid JSON: double-quoted keys and string values. Single quotes or trailing commas will cause a parse error.
+</Warning>
+
+```js
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "primaryColor": "#D97757",
+  "fontSize": 16,
+  "dark": false
+}/*EDITMODE-END*/;
+
+// Load from localStorage or use defaults
+const tweaks = {
+  ...TWEAK_DEFAULTS,
+  ...JSON.parse(localStorage.getItem('cc-tweaks') || '{}')
+};
+
+function applyTweaks() {
+  document.documentElement.style.setProperty('--primary', tweaks.primaryColor);
+  document.documentElement.style.setProperty('--font-size', tweaks.fontSize + 'px');
+  // Apply other tweaks...
+  localStorage.setItem('cc-tweaks', JSON.stringify(tweaks));
+}
+
+applyTweaks();
+```
+
+## Control types
+
+The tweaks system supports three native HTML input types: color pickers, range sliders, and dropdowns.
+
+<Tabs>
+  <Tab title="Color picker">
+    ```html
+    <label>
+      Primary color
+      <input type="color" value="#D97757"
+        oninput="tweaks.primaryColor = this.value; applyTweaks()">
+    </label>
+    ```
+  </Tab>
+  <Tab title="Range slider">
+    ```html
+    <label>
+      Font size: <span id="font-size-label">16</span>px
+      <input type="range" min="12" max="24" value="16"
+        oninput="tweaks.fontSize = +this.value; document.getElementById('font-size-label').textContent = this.value; applyTweaks()">
+    </label>
+    ```
+  </Tab>
+  <Tab title="Dropdown">
+    ```html
+    <label>
+      Color scheme
+      <select onchange="tweaks.colorScheme = this.value; applyTweaks()">
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+        <option value="system">System</option>
+      </select>
+    </label>
+    ```
+  </Tab>
+</Tabs>
+
+## When to use the tweaks system
+
+<AccordionGroup>
+  <Accordion title="Multiple design variants">
+    When a design has more than one viable direction — different color schemes, layout modes, or copy — expose them as tweaks rather than generating separate files. All variants live in one file and are toggled in real time.
+  </Accordion>
+  <Accordion title="Spacing or typography exploration">
+    When the right font size or spacing density is uncertain, a range slider lets you explore the range interactively instead of re-generating the file for each value.
+  </Accordion>
+  <Accordion title="Dark/light mode">
+    Expose a `dark` boolean as a toggle or a `colorScheme` dropdown. Apply the mode by swapping CSS custom properties in `applyTweaks()`.
+  </Accordion>
+  <Accordion title="Copy variations">
+    When headline or CTA copy needs to be evaluated in context, expose the options as a dropdown and swap the text content in `applyTweaks()`.
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+Even when the user doesn't ask for tweaks, add a couple by default — expose interesting possibilities like the primary color or font size. A small panel adds value without cluttering the design.
+</Tip>
+
+## How tweaks prevent file proliferation
+
+Without the tweaks system, presenting three color scheme variants means three separate HTML files. With tweaks, they are three options in a single `<select>`. This matters because:
+
+- The user reviews one URL, not three
+- Changes to the underlying design apply everywhere automatically
+- `localStorage` persistence means the user can leave and return to their chosen variant
+
+The rule: **if multiple variants exist, they are exposed as tweaks, not separate files.**
+
+## Relationship with `design_canvas.jsx`
+
+For cases where you need a true side-by-side comparison — variants rendered simultaneously rather than toggled — use [`design_canvas.jsx`](/reference/templates#design_canvas-jsx-side-by-side-option-grid) alongside tweaks. The canvas renders all options at once in a labeled grid; tweaks can still control shared parameters like font size or background color that apply across all cells simultaneously.
+
+## Tweaks panel guidelines
+
+- Keep the panel compact — it should feel like a small tool, not a settings page
+- When the panel is closed, the design must look complete and final, with no visible controls
+- Title the panel exactly **"Tweaks"** — consistent naming makes it easier to find across prototypes
+- Use the `EDITMODE-BEGIN` / `EDITMODE-END` markers around your defaults so CC Design can update them with the `Edit` tool

@@ -1,0 +1,104 @@
+---
+title: "Create iOS and Android mobile mockups with CC Design"
+description: "CC Design renders app screens inside device bezels using ios_frame.jsx and android_frame.jsx, with 44px touch targets and thumb zone layout rules enforced."
+---
+
+Mobile mockups in CC Design render app screens inside accurate device bezels — the iPhone or Android frame, status bar, home indicator, and surrounding chrome are all included. The frame templates are React components, so the screen content you pass as children is live and interactive, not a static screenshot inside an image.
+
+## Available frame templates
+
+<CardGroup cols={2}>
+  <Card title="ios_frame.jsx" icon="mobile">
+    Renders a 393×852px iPhone frame with a Dynamic Island notch, status bar (time + battery), and home indicator. The `color` prop sets the device color and auto-computes text contrast.
+  </Card>
+  <Card title="android_frame.jsx" icon="smartphone">
+    Renders an Android phone frame with status bar and navigation bar. Useful when the mockup targets Android-specific interaction patterns or navigation gestures.
+  </Card>
+</CardGroup>
+
+Both templates are JSX React components. Load them with `<script type="text/babel" src="...">`, not with a plain `<script src="...">` tag.
+
+## The IOSFrame component
+
+The `ios_frame.jsx` template exposes a single `IOSFrame` component:
+
+```jsx
+function IOSFrame({ children, color = '#000', showNotch = true }) {
+  // ...
+}
+
+// Exported to window for cross-file use:
+Object.assign(window, { IOSFrame });
+```
+
+Wrap your app screen content as children:
+
+```jsx
+<IOSFrame color="#1a1a1a">
+  <div style={{ padding: '24px', background: '#fff', height: '100%' }}>
+    {/* Your app screen content */}
+  </div>
+</IOSFrame>
+```
+
+The component renders at exactly 393×852px (iPhone 15 Pro dimensions), with a `box-shadow` for depth and 50px border radius for the device corners.
+
+## What gets loaded
+
+For any mobile mockup task, CC Design loads:
+
+- **`references/starter-components.md`** — documents all available frame templates and the copy command
+- **`references/react-babel-setup.md`** — pinned React + Babel CDN versions with SRI hashes
+- **`case-studies/mobile-apps/ios-onboarding.md`** — reference for iOS-specific interaction patterns, typography scales, and spacing conventions
+- **`references/design-excellence.md`** — always loaded; the mobile app design strategy section applies directly
+
+## Mobile design guidelines
+
+These guidelines are drawn from `references/design-excellence.md` and enforced in every mobile mockup:
+
+<Steps>
+  <Step title="Touch targets: minimum 44×44px">
+    Every tappable element — button, link, icon, list item — must be at least 44×44px. This is Apple's HIG requirement and prevents mis-taps. Add padding to elements that are visually smaller than 44px to meet the target size without changing the visual appearance.
+  </Step>
+  <Step title="Thumb zones: primary actions in the bottom third">
+    The bottom third of the screen is the most reachable area for one-handed use. Place primary actions (submit buttons, navigation tabs, floating action buttons) here. Put secondary or destructive actions higher up where they require more intentional reach.
+  </Step>
+  <Step title="Progressive disclosure: show only what's needed">
+    Mobile screens are small. Reveal complexity only when the user requests it — collapse details behind "See more," use bottom sheets for secondary options, and keep the initial view to the essential task.
+  </Step>
+  <Step title="Immediate visual feedback">
+    Every interaction must produce an immediate visual response. Buttons should show a pressed state, lists should highlight the selected row, and loading states should appear within 100ms of a tap.
+  </Step>
+</Steps>
+
+## Verification focus
+
+Before delivering a mobile mockup, CC Design takes a screenshot and verifies:
+
+- The device bezel renders correctly with rounded corners and no overflow
+- The status bar shows in the correct color (derived from the frame's `color` prop)
+- The home indicator is visible at the bottom of the frame
+- Content does not overflow the frame bounds
+
+<Warning>
+  If the bezel is missing or the content overflows the device frame, the mockup is not ready. CC Design fixes the framing before delivery — a bare app screen without the device context doesn't communicate the design intent.
+</Warning>
+
+## Text size
+
+For mobile screens, text must be at least 12pt equivalent — the minimum legible size for handheld use. In CSS pixels at standard 1x density, this is approximately 16px for body text. CC Design does not use font sizes smaller than 12px for any readable content in mobile mockups.
+
+## Related templates
+
+If you need a desktop window frame instead of a device frame, CC Design offers two options:
+
+- **`macos_window.jsx`** — macOS window chrome with traffic light buttons (close, minimize, maximize) and a title bar
+- **`browser_window.jsx`** — browser chrome with a tab bar and address bar, useful for web app mockups
+
+## Example prompt
+
+```
+iOS app mockup for a fitness tracker
+```
+
+This generates a multi-screen fitness tracker prototype inside an `IOSFrame`, with tab bar navigation (Home, Workouts, Progress, Profile), a workout start screen, and an activity ring visualization — using iOS typography conventions and 44px touch targets throughout.

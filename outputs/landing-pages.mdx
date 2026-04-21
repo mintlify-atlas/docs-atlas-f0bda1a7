@@ -1,0 +1,97 @@
+---
+title: "Build landing pages and product pages with CC Design"
+description: "CC Design builds responsive landing pages using proven layout patterns and starter components — with optional browser chrome and brand token integration."
+---
+
+Landing pages are the most common output type in CC Design. The skill loads `references/starter-components.md` and `references/design-patterns.md` for every landing page task — the first for component scaffolds, the second for proven layout patterns that work across hero sections, feature grids, social proof blocks, and pricing tables.
+
+## What gets loaded
+
+For any landing page or product page task, CC Design loads:
+
+- **`references/starter-components.md`** — component scaffolds including device frames, browser chrome, and presentation grids
+- **`references/design-patterns.md`** — proven layout patterns for hero sections, feature grids, testimonials, pricing, and CTAs
+- **`references/design-excellence.md`** — always loaded for any design task; provides the visual hierarchy checklist and emotional tone decision tree
+- **`templates/browser_window.jsx`** (optional) — adds realistic browser chrome around the page content, useful when the mockup is meant to show the page as it would appear in a browser
+
+## Browser window chrome
+
+When the mockup needs to show the page inside a browser, CC Design copies `templates/browser_window.jsx` and wraps the page content:
+
+```jsx
+<BrowserWindow url="https://yourapp.com" width={1280} height={800}>
+  <div>Page content here</div>
+</BrowserWindow>
+```
+
+The `BrowserWindow` component renders macOS-style traffic light buttons, a tab bar with a favicon placeholder, and an address bar showing the URL with a lock icon.
+
+## Brand integration
+
+Mention a brand name in your request to get a brand-styled landing page. CC Design detects brand names (Stripe, Vercel, Notion, Linear, Apple, and 60+ others) and fetches the corresponding design system from [getdesign.md](https://getdesign.md):
+
+```
+Vercel-style landing page with hero section and feature grid
+```
+
+This fetches Vercel's DESIGN.md, extracts colors, typography, and spacing tokens, then applies them throughout the page. Without a brand mention, CC Design asks for a starting aesthetic or derives one from the product description.
+
+## Product page design strategy
+
+From `references/design-excellence.md`, the strategy for product pages follows a trust-then-conversion arc:
+
+<Steps>
+  <Step title="Hero: large value proposition with visual proof">
+    The headline should state the product's core benefit in one sentence. Pair it with a screenshot, demo video thumbnail, or illustration — not abstract imagery. Visual proof should appear above the fold alongside the headline, not below it.
+  </Step>
+  <Step title="Social proof: early and prominent">
+    Logos, customer counts, or testimonials appear immediately after the hero — not at the bottom of the page. "Trusted by 10,000+ teams" with recognizable logos converts better than features listed first.
+  </Step>
+  <Step title="Features: benefit-focused and scannable">
+    Feature sections lead with the user benefit ("Ship faster") not the technical capability ("CI/CD pipeline"). Use a 3-column card grid or alternating text-image rows for scannability. Visual hierarchy within each card: icon or screenshot first, benefit headline second, explanation last.
+  </Step>
+  <Step title="CTA: high contrast, above fold, repeated">
+    The primary CTA button appears in the hero (above fold) and again at each natural decision point — after the feature section, after testimonials, and at the page footer. Use a single high-contrast color for the primary CTA and no other element on the page.
+  </Step>
+</Steps>
+
+## Anti-slop rules
+
+CC Design avoids visual patterns that produce generic-looking output:
+
+<CardGroup cols={2}>
+  <Card title="No aggressive gradients" icon="x">
+    Avoid rainbow backgrounds, purple-to-pink hero gradients, or multi-stop gradients with no design rationale. Use oklch for harmonious color matching instead.
+  </Card>
+  <Card title="No overused fonts" icon="x">
+    Inter, Roboto, Arial, Fraunces, and system font stacks are explicitly avoided. CC Design chooses from less generic options (DM Sans, Outfit, Plus Jakarta Sans, Space Grotesk) or derives the font from the brand.
+  </Card>
+  <Card title="No left-border accent cards" icon="x">
+    The "rounded card with a colored left border" pattern is one of the most overused in AI-generated design. CC Design uses full-border, underline, or background-color differentiation instead.
+  </Card>
+  <Card title="No SVG imagery" icon="x">
+    If an icon or illustration is needed and no asset is available, CC Design draws a clean placeholder. A labeled rectangle beats a bad AI-generated SVG icon.
+  </Card>
+</CardGroup>
+
+## Responsive layout
+
+All landing pages must pass a responsive layout check before delivery. CC Design verifies at three widths:
+
+- **Mobile (375px):** Single column, stacked sections, no horizontal overflow
+- **Tablet (768px):** Two-column feature grid, adjusted hero padding
+- **Desktop (1280px+):** Full-width hero, three-column grid, sidebar elements visible
+
+<Note>
+  Landing pages that have console errors are not delivered. CC Design checks the browser console as part of its verification step and fixes any errors before marking the task complete.
+</Note>
+
+## Example prompts
+
+```
+Design a landing page for our SaaS product
+```
+
+```
+Vercel-style landing page with hero section and feature grid
+```

@@ -1,0 +1,116 @@
+---
+title: "Bundle a CC Design artifact as self-contained HTML"
+description: "super_inline_html.js inlines fonts, images, and CSS into one HTML file shareable without a server. Uses only Node.js built-ins — no npm dependencies required."
+---
+
+`super_inline_html.js` reads an HTML file and replaces all local asset references with inline equivalents — converting linked stylesheets to `<style>` blocks, external scripts to inline `<script>` blocks, and image sources to base64 data URLs. The result is a single `.html` file that opens correctly in any browser with no network requests, no server, and no missing assets.
+
+## Why this matters
+
+Standard HTML files reference assets by path. Move the file to a different machine or email it to a colleague and those paths break. An inlined file carries everything it needs inside the document itself: fonts, images, and styles are all encoded directly in the HTML, so the file is fully self-contained.
+
+This makes inline HTML a practical format for:
+
+- Sharing prototypes with non-technical stakeholders who should not need to run a server
+- Attaching a design to an email or uploading it to a shared drive
+- Archiving a snapshot of a design that will remain openable years from now
+- Design reviews where reviewers open files locally without a development environment
+
+## Prerequisites
+
+`super_inline_html.js` uses only Node.js built-in modules (`fs`, `path`). It does not require any npm dependencies. If you have already run `npm install` in `scripts/` for other export scripts, no additional setup is needed.
+
+## Usage
+
+```bash
+node scripts/super_inline_html.js --input page.html --output page-inline.html
+```
+
+If `--output` is omitted, the inlined HTML is written to stdout, which you can redirect to a file:
+
+```bash
+node scripts/super_inline_html.js --input page.html > page-inline.html
+```
+
+### Arguments
+
+| Flag | Default | Description |
+|---|---|---|
+| `--input` | _(required)_ | Path to the source HTML file |
+| `--output` | _(stdout)_ | Path for the self-contained output file |
+
+## What gets inlined
+
+The script processes four categories of local asset references. External URLs (those starting with `http` or `data:`) and CDN scripts (those referencing `unpkg.com` or `cdn.`) are left untouched.
+
+| Asset type | Source pattern | Result |
+|---|---|---|
+| Linked stylesheets | `<link rel="stylesheet" href="...">` | Replaced with `<style>` block containing the CSS text |
+| External scripts | `<script src="...">` | Replaced with inline `<script>` block containing the JS text |
+| Images | `<img src="...">` | `src` attribute replaced with a base64 data URL |
+| CSS `url()` references | `url(...)` inside `<style>` blocks or `style=""` attributes | Replaced with base64 data URLs for fonts, background images, and other assets |
+
+Supported image and font formats: `.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.webp`, `.ico`, `.woff`, `.woff2`, `.ttf`.
+
+<Note>
+  Assets that cannot be resolved — for example, files that don't exist at the referenced path — are left as-is rather than causing an error. Check the output file in a browser to confirm all assets loaded correctly.
+</Note>
+
+## Full workflow
+
+<Steps>
+  <Step title="Generate the HTML artifact">
+    Produce the HTML file using the CC Design skill. Ensure all local assets (images, fonts, CSS files) are present relative to the HTML file.
+  </Step>
+  <Step title="Verify the source HTML">
+    Open the source file in the browser to confirm it renders correctly before inlining:
+
+    ```bash
+    # Via Playwright MCP
+    mcp__playwright__browser_navigate file:///absolute/path/to/page.html
+    mcp__playwright__browser_console_messages
+    ```
+  </Step>
+  <Step title="Run super_inline_html.js">
+    Bundle the file and all its local assets into a single output file:
+
+    ```bash
+    node scripts/super_inline_html.js \
+      --input page.html \
+      --output page-inline.html
+    ```
+
+    The script prints the output path when complete:
+
+    ```
+    Inlined HTML saved to: /absolute/path/to/page-inline.html
+    ```
+  </Step>
+  <Step title="Verify the output">
+    Open the output file in the browser to confirm it looks identical to the source:
+
+    ```bash
+    mcp__playwright__browser_navigate file:///absolute/path/to/page-inline.html
+    mcp__playwright__browser_take_screenshot
+    ```
+  </Step>
+  <Step title="Share the file">
+    The output file is self-contained. Email it, upload it to a shared drive, or attach it to an issue — it will open correctly for anyone with a browser.
+  </Step>
+</Steps>
+
+## npm script shorthand
+
+From within the `scripts/` directory:
+
+```bash
+cd scripts && npm run inline -- --input ../page.html --output ../page-inline.html
+```
+
+<Tip>
+  For prototypes shared with non-technical stakeholders, inline HTML is often the lowest-friction option. There is nothing to install, no URL to keep alive, and no dependency on your development environment.
+</Tip>
+
+<Warning>
+  Inlining large images or many assets can produce a very large HTML file. For decks with many high-resolution images, consider using [PDF export](/export/pdf) or [PPTX export](/export/pptx) instead.
+</Warning>

@@ -1,0 +1,93 @@
+---
+title: "Create fixed-canvas HTML slide decks with CC Design"
+description: "CC Design generates HTML slide decks on a fixed 1920×1080 canvas using deck_stage.js for letterboxing, keyboard navigation, and 1-indexed screen labels."
+---
+
+Slide decks in CC Design are HTML files built around a fixed 1920×1080 canvas. The `deck_stage.js` template handles all the hard parts — letterboxing, keyboard navigation, slide-count overlay, localStorage position persistence, and print-to-PDF — so the design work focuses entirely on slide content.
+
+## The deck_stage template
+
+When you request a slide deck, CC Design copies `templates/deck_stage.js` to your project directory and loads `references/starter-components.md` as its component reference:
+
+```bash
+cp <skill-dir>/templates/deck_stage.js ./deck_stage.js
+```
+
+The template registers a `<deck-stage>` custom element. Each slide is a `<section>` element placed as a direct child. The component scales the canvas to fit any screen size using `transform: scale()`, keeping the fixed 1920×1080 dimensions regardless of the viewer's window size:
+
+```js
+_scale() {
+  const sx = window.innerWidth / 1920;
+  const sy = window.innerHeight / 1080;
+  const scale = Math.min(sx, sy);
+  this.canvas.style.transform = `scale(${scale})`;
+}
+```
+
+The result is a slide deck that looks identical at 4K, 1080p, or in a laptop window — letterboxed on a black background, never stretched.
+
+## The data-screen-label attribute
+
+Every slide gets a `data-screen-label` attribute that uses 1-indexed labels matching the counter the user sees:
+
+```html
+<deck-stage>
+  <section data-screen-label="01 Title">...</section>
+  <section data-screen-label="02 Agenda">...</section>
+  <section data-screen-label="03 Problem">...</section>
+  <section data-screen-label="04 Solution">...</section>
+  <section data-screen-label="05 Ask">...</section>
+</deck-stage>
+```
+
+When you say "update slide 3," CC Design looks for `data-screen-label="03 Problem"` — not array index `[2]`. The labels are auto-applied by `deck_stage.js` if you omit them, but writing them explicitly lets you use descriptive names.
+
+## Keyboard and navigation controls
+
+`deck_stage.js` adds keyboard navigation automatically:
+
+| Key | Action |
+|---|---|
+| `→` or `Space` | Next slide |
+| `←` | Previous slide |
+| `Home` | First slide |
+| `End` | Last slide |
+
+Prev/Next buttons are rendered outside the scaled canvas element so they remain full-size and clickable at any zoom level.
+
+## Text size requirement
+
+For a 1920×1080 canvas, text must be at least 24px. At a typical 50% scale factor (fitting a 1080p display), 24px renders at 12px — the minimum legible size. Body copy at 18px or less becomes illegible. CC Design enforces this by default:
+
+- **Headlines:** 80–120px
+- **Body text:** 28–36px
+- **Supporting / label text:** 24px minimum
+
+## Slide rhythm
+
+Good decks vary their slide types. From the design-excellence guidelines:
+
+- **One idea per slide.** No walls of text. If a slide needs more than one sentence of body copy, it likely needs to be split.
+- **Vary slide types every 3–5 slides.** Rotate between text-forward, image-forward, data/chart, and pull-quote slides to maintain attention.
+- **Memorable moments.** Use full-bleed images, bold typographic statements, or surprising data at key points in the narrative.
+
+## Example prompt
+
+```
+Pitch deck with 5 slides: title, problem, solution, traction, ask
+```
+
+This generates a 5-slide deck with:
+- Slide `01 Title` — company name, tagline, and presenter info
+- Slide `02 Problem` — one clear pain point, large headline
+- Slide `03 Solution` — product explanation with visual
+- Slide `04 Traction` — metrics or social proof
+- Slide `05 Ask` — funding amount and use of funds
+
+## Exporting to PowerPoint
+
+After generating an HTML deck, you can export it to an editable `.pptx` file. See [Export to PPTX](/export/pptx) for the full workflow.
+
+<Tip>
+  CC Design never hand-rolls scaling transforms for slide decks. If you see a slide deck without `<deck-stage>`, the scaling logic is either broken or will break on window resize.
+</Tip>

@@ -1,0 +1,109 @@
+---
+title: "Export CC Design HTML artifacts to PDF via Playwright"
+description: "open_for_print.js renders HTML to PDF via Playwright's Chromium, preserving CSS layout, custom fonts, and gradients. Slide decks get one PDF page per slide."
+---
+
+`open_for_print.js` renders an HTML file in a headless Chromium browser and exports it as a PDF using Playwright's built-in `page.pdf()` API. Because the rendering pipeline is a real browser engine, the output preserves CSS layout, custom fonts, gradients, background colors, and any other visual properties exactly as they appear in the browser. There is no intermediate conversion step that could alter fidelity.
+
+## Prerequisites
+
+Install the npm dependencies from the `scripts/` directory and then install the Chromium binary:
+
+```bash
+cd scripts && npm install
+npx playwright install chromium
+```
+
+The script exits immediately with a clear error message if Playwright is not available, so missing this step is easy to diagnose.
+
+## Usage
+
+```bash
+node scripts/open_for_print.js --input page.html --output page.pdf
+```
+
+### Arguments
+
+| Flag | Default | Description |
+|---|---|---|
+| `--input` | _(required)_ | Path to the HTML file to render |
+| `--output` | `output.pdf` | Path for the generated `.pdf` file |
+
+## How it renders
+
+The script navigates to the input file using a `file://` URL and waits for `networkidle` before generating the PDF, ensuring that any deferred CSS or web fonts have finished loading.
+
+It then checks whether the document contains a `<deck-stage>` element — the container used in CC Design slide decks. If one is found, the script makes all `<section>` slides visible and sets `pageBreakAfter: always` on each, so every slide lands on its own PDF page. Slide pages are output at 1920 × 1080 px with no margins. For non-deck documents, the script uses A4 format with Playwright's default margins.
+
+In both cases, `printBackground: true` ensures that background colors and images are included in the PDF.
+
+## Use cases
+
+<CardGroup cols={2}>
+  <Card title="Presentations for printing" icon="printer">
+    Export a slide deck to PDF for printing handouts or distributing to attendees who prefer paper copies.
+  </Card>
+  <Card title="Design review handoffs" icon="users">
+    Share a fixed-layout snapshot of a design with reviewers who should not edit the content.
+  </Card>
+  <Card title="Archiving" icon="archive">
+    Produce a durable, self-contained record of a design at a point in time, independent of any server or runtime.
+  </Card>
+  <Card title="Email attachments" icon="mail">
+    Attach a PDF to an email when a browser link is not practical and inline HTML would be too large.
+  </Card>
+</CardGroup>
+
+## Full workflow
+
+<Steps>
+  <Step title="Generate the HTML artifact">
+    Produce the HTML file — either a slide deck or a single-page design — using the CC Design skill.
+  </Step>
+  <Step title="Verify the HTML in the browser">
+    Before exporting, confirm the design renders correctly:
+
+    ```bash
+    # Via Playwright MCP
+    mcp__playwright__browser_navigate file:///absolute/path/to/page.html
+    mcp__playwright__browser_console_messages
+    mcp__playwright__browser_take_screenshot
+    ```
+
+    Fix any console errors before proceeding. Errors that are silent in the browser can affect PDF output.
+  </Step>
+  <Step title="Export to PDF">
+    Run `open_for_print.js` from the project root:
+
+    ```bash
+    node scripts/open_for_print.js --input page.html --output page.pdf
+    ```
+
+    The script prints the output path when complete:
+
+    ```
+    PDF saved to: /absolute/path/to/page.pdf
+    ```
+  </Step>
+</Steps>
+
+## PDF quality
+
+Playwright renders the page using Chromium's print pipeline, which means:
+
+- **CSS layout** is fully respected, including flexbox, grid, and custom properties.
+- **Fonts** are captured as rendered, including web fonts loaded via `@font-face` or Google Fonts (if the machine has network access at render time).
+- **Colors and gradients** are preserved, including backgrounds, because `printBackground` is enabled.
+- **Animations and transitions** are frozen at their initial state; dynamic effects do not carry over to PDF.
+
+<Tip>
+  For slide decks, check that all slides are visible in the browser before exporting. Hidden slides (those with `display: none`) will not appear in the PDF unless the script's deck-detection logic makes them visible, which only applies to slides inside a `<deck-stage>` element.
+</Tip>
+
+## npm script shorthand
+
+From within the `scripts/` directory:
+
+```bash
+cd scripts && npm run pdf -- --input ../page.html --output ../page.pdf
+```

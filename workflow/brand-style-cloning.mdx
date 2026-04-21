@@ -1,0 +1,160 @@
+---
+title: "Load brand design systems into CC Design artifacts"
+description: "Load design systems from 68+ brands including Stripe, Vercel, Apple, and Linear. CC Design fetches DESIGN.md files from getdesign.md and applies tokens to HTML."
+---
+
+CC Design can apply the visual language of over 68 well-known brands to any design artifact. It works by fetching community-maintained DESIGN.md files that capture a brand's color palette, typography, spacing scale, and component patterns, then injecting those tokens into the generated HTML. The result is a design that feels professionally crafted and on-brand rather than generic.
+
+## How brand detection works
+
+Brand detection runs at the start of the Understand step. CC Design scans the user's request for brand names in the following categories:
+
+<AccordionGroup>
+  <Accordion title="AI & LLM platforms">
+    OpenAI, Anthropic, Claude, Cursor, Perplexity, Midjourney, Replicate, Hugging Face, Cohere, Stability AI
+  </Accordion>
+  <Accordion title="Developer tools">
+    Vercel, GitHub, Linear, Figma, Supabase, Sentry, Raycast, Expo, Postman, Railway, Render
+  </Accordion>
+  <Accordion title="Fintech & crypto">
+    Stripe, Coinbase, Binance, Revolut, Cash App, Robinhood, Plaid
+  </Accordion>
+  <Accordion title="Enterprise & cloud">
+    IBM, Salesforce, MongoDB, Redis, Snowflake, Databricks, Confluent
+  </Accordion>
+  <Accordion title="Automotive">
+    Tesla, SpaceX, Lamborghini, Ferrari, Porsche, BMW, Mercedes-Benz, Bugatti
+  </Accordion>
+  <Accordion title="Consumer tech">
+    Apple, Spotify, Airbnb, Uber, Netflix, Nike, Notion
+  </Accordion>
+  <Accordion title="Media & social">
+    X (Twitter), Instagram, YouTube, TikTok, Discord, Slack
+  </Accordion>
+</AccordionGroup>
+
+If any brand name from these categories appears in the request, the task is automatically classified as a **Brand style clone** and `references/getdesign-loader.md` is loaded alongside `react-babel-setup.md`.
+
+## The fetch-and-apply workflow
+
+<Steps>
+  <Step title="Detect">
+    CC Design identifies the brand name in the prompt and determines which category it belongs to, along with its expected design characteristics. For example, detecting "Stripe" signals a fintech aesthetic: clean gradients, a purple accent color, and trust-building typography.
+  </Step>
+  <Step title="Fetch from getdesign.md">
+    CC Design uses `WebFetch` to retrieve the brand's DESIGN.md from the community-maintained repository. Files are hosted at:
+
+    ```
+    https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/designs/{brand-slug}.md
+    ```
+
+    Common slug patterns include `stripe.md`, `vercel.md`, `notion.md`, `linear.md`, and `apple.md`. The full brand catalog is available at [getdesign.md](https://getdesign.md).
+  </Step>
+  <Step title="Apply tokens">
+    CC Design parses the DESIGN.md for colors, typography, spacing, and component patterns, then injects them as CSS custom properties:
+
+    ```html
+    <style>
+      :root {
+        /* Colors from Stripe DESIGN.md */
+        --primary: #635BFF;
+        --primary-hover: #0A2540;
+        --surface: #FFFFFF;
+        --text: #0A2540;
+        --text-secondary: #425466;
+
+        /* Typography from Stripe DESIGN.md */
+        --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        --font-mono: "SF Mono", Monaco, "Cascadia Code", monospace;
+
+        /* Spacing from Stripe DESIGN.md */
+        --space-unit: 8px;
+        --space-xs: calc(var(--space-unit) * 1);
+        --space-sm: calc(var(--space-unit) * 2);
+        --space-md: calc(var(--space-unit) * 3);
+        --space-lg: calc(var(--space-unit) * 4);
+      }
+    </style>
+    ```
+
+    The tokens are applied consistently across every component in the output — buttons, cards, navigation, typography — not just the top-level container.
+  </Step>
+</Steps>
+
+## Example requests
+
+### Single brand
+
+```
+/cc-design "Notion-style kanban board"
+```
+
+Output: A kanban board with Notion's clean typography, subtle shadows, and neutral color palette.
+
+```
+/cc-design "Create a pricing page with Stripe's aesthetic"
+```
+
+Output: A pricing page using Stripe's purple gradient palette, clean form styling, and trust-focused layout. CC Design detects "Stripe", fetches `stripe.md`, extracts the design tokens, and verifies the output matches Stripe's visual style.
+
+### Multi-brand blending
+
+```
+/cc-design "Mix Stripe's colors with Vercel's minimalist layout for a dashboard"
+```
+
+Output: A dashboard combining Stripe's purple gradient palette with Vercel's black background and clean spacing. CC Design fetches both DESIGN.md files, extracts non-conflicting tokens (colors from one brand, layout patterns from the other), and generates a hybrid with attribution comments in the CSS.
+
+<Warning>
+  Mixing three or more distinct aesthetics often creates visual chaos. CC Design will warn you if a requested combination seems incoherent before proceeding.
+</Warning>
+
+### Brand exploration
+
+```
+/cc-design "Show me 3 variants: Stripe style, Vercel style, and Linear style for a settings page"
+```
+
+Output: `design_canvas.jsx` with a side-by-side comparison of all three brand aesthetics, plus a tweaks panel to switch between them. No separate files — all variants live in one artifact.
+
+## Brand + existing design system
+
+If your project already has a `DESIGN.md`, CC Design reads it before fetching the brand's design system. It then asks how to reconcile the two:
+
+1. Replace your current design entirely with the brand's system
+2. Merge the brand's colors but keep your typography
+3. Use the brand as inspiration and adapt to your brand
+4. Show the brand's system for reference only, without applying it
+
+This prevents accidental overwriting of work already done and keeps the decision in the user's hands.
+
+## Tips for best results
+
+<CardGroup cols={2}>
+  <Card title="Be specific about brand elements" icon="crosshair">
+    Instead of "make it look like Stripe", try "use Stripe's purple gradient and clean form styling." The more specific the reference, the more accurate the token extraction.
+  </Card>
+  <Card title="Combine brand and task type" icon="layers">
+    "Vercel-style landing page with hero section and feature grid" helps CC Design load both the brand reference and the correct component templates simultaneously.
+  </Card>
+  <Card title="Use comparisons for exploration" icon="columns-2">
+    "Show me this dashboard in Notion style vs Linear style" produces a side-by-side comparison that makes aesthetic direction decisions faster and more concrete.
+  </Card>
+  <Card title="Adapt rather than clone" icon="pencil">
+    "Inspired by Stripe's payment forms, but adapted for a B2B SaaS product" uses Stripe's patterns as a foundation while adjusting for your specific product context.
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="What if my brand isn't in the catalog?">
+    CC Design falls back to web search and attempts to reconstruct the design system from public sources — screenshots, official guidelines, and web inspector data. The reconstructed DESIGN.md will be marked with a comment: `// Reconstructed from public sources, not official`. Quality may vary compared to catalog brands. You can contribute missing brands to the [VoltAgent/awesome-design-md](https://github.com/VoltAgent/awesome-design-md) repository.
+  </Accordion>
+  <Accordion title="Can I save a fetched brand style for reuse?">
+    Yes. After CC Design fetches a brand's DESIGN.md, ask: "Save this as our project's design system." It will write a `DESIGN.md` file to your project root that persists across sessions.
+  </Accordion>
+  <Accordion title="What if the brand's design has changed since getdesign.md was last updated?">
+    The getdesign.md catalog is community-maintained. If you notice outdated styles, you can contribute updates to the [VoltAgent/awesome-design-md](https://github.com/VoltAgent/awesome-design-md) repository.
+  </Accordion>
+</AccordionGroup>

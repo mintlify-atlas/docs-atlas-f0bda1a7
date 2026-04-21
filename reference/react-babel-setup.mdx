@@ -1,0 +1,112 @@
+---
+title: "Inline React and Babel setup for CC Design prototypes"
+description: "Pinned CDN tags with SRI hashes for React 18.3.1 and Babel 7.29.0, plus scope rules for multi-file JSX — required for all CC Design interactive prototypes."
+---
+
+CC Design renders React components directly inside HTML files using Babel's in-browser transpiler — no build step required. This works by loading React, ReactDOM, and Babel from CDN in a single `<script>` block, then writing JSX in `<script type="text/babel">` tags. The approach is fast to iterate on, but it requires using exact pinned versions with integrity hashes and following strict scope rules to avoid runtime errors across multi-file prototypes.
+
+## Pinned CDN script tags
+
+Always use these exact script tags. Do not use unpinned version ranges (e.g. `react@18`) and do not omit the `integrity` attributes. Unpinned versions can break silently when CDN content changes; omitted integrity hashes allow tampered scripts to load.
+
+```html
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js"
+  integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L"
+  crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"
+  integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm"
+  crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"
+  integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y"
+  crossorigin="anonymous"></script>
+```
+
+<Note>
+Import helper or component scripts using plain `<script src>` tags. Avoid `type="module"` on script imports — it can break cross-file component sharing.
+</Note>
+
+## Scope rules
+
+Each `<script type="text/babel">` block is transpiled in isolation. Variables defined in one block are not automatically available in another. Two rules prevent the most common class of runtime errors.
+
+### Unique names for style objects
+
+If you import more than one component file and both define a variable named `styles`, the second definition silently overwrites the first. Give every style object a name specific to its component:
+
+```js
+// Good — unique name based on component
+const terminalStyles = { ... };
+
+// Bad — generic name that collides across files
+const styles = { ... };
+```
+
+### Export components to `window`
+
+Because each Babel script block has its own scope after transpilation, components defined in one file are invisible to another unless explicitly exported. At the end of every component file, assign all shared names to `window`:
+
+```js
+// At the end of components.jsx
+Object.assign(window, {
+  Terminal, Line, Spacer,
+  Gray, Blue, Green, Bold,
+  // all components that need to be shared
+});
+```
+
+Any component referenced in a parent file's JSX must appear in this export list.
+
+## When this reference is loaded
+
+CC Design automatically loads this reference for the following task types:
+
+<AccordionGroup>
+  <Accordion title="React prototype">
+    A self-contained interactive prototype built with React components rendered inside a single HTML file.
+  </Accordion>
+  <Accordion title="Slide deck">
+    A presentation using `deck_stage.js` where individual slides may contain React components via Babel.
+  </Accordion>
+  <Accordion title="Animation">
+    A motion-design output using `animations.jsx`, which exports `Stage`, `Sprite`, `useTime`, and related primitives.
+  </Accordion>
+  <Accordion title="Mobile mockup">
+    A device-framed screen using `ios_frame.jsx` or `android_frame.jsx`, both of which are Babel-loaded JSX components.
+  </Accordion>
+  <Accordion title="Interactive prototype">
+    Any prototype that uses state, event handlers, or dynamic rendering — typically built with React hooks and Babel.
+  </Accordion>
+</AccordionGroup>
+
+## Common pitfalls
+
+<AccordionGroup>
+  <Accordion title="Duplicate component names across files">
+    If two files each define a component with the same name and both export it to `window`, the second file's version replaces the first. Rename one or restructure the export to avoid the conflict.
+  </Accordion>
+  <Accordion title="Missing key props in lists">
+    React emits a console warning when list items lack a `key` prop. This counts as a console error for delivery purposes. Always include `key` when mapping over arrays:
+
+    ```jsx
+    items.map((item, i) => <div key={i}>{item.label}</div>)
+    ```
+  </Accordion>
+  <Accordion title="Incorrect event handler syntax">
+    Babel transpiles JSX event handlers, but they must use camelCase names and receive a function value, not a call:
+
+    ```jsx
+    // Good
+    <button onClick={() => handleClick()}>Click</button>
+
+    // Bad — calls the function immediately, doesn't attach a handler
+    <button onClick={handleClick()}>Click</button>
+    ```
+  </Accordion>
+  <Accordion title="Using type='module' on script imports">
+    Adding `type="module"` to a component `<script>` tag changes how Babel's scope isolation works and can prevent components from being accessible on `window`. Use plain `<script src>` instead.
+  </Accordion>
+</AccordionGroup>
+
+## Verification requirement
+
+Every prototype must reach zero console errors before delivery. Use `mcp__playwright__browser_console_messages` after navigating to the file to check for errors, warnings, and React-specific messages. Fix all issues before marking the task complete. See [Playwright MCP tool reference](/reference/platform-tools) for the full verification workflow.

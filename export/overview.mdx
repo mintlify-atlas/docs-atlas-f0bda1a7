@@ -1,0 +1,86 @@
+---
+title: "Export CC Design artifacts: PPTX, PDF, and inline HTML"
+description: "Three scripts ship with CC Design: gen_pptx.js for PowerPoint, open_for_print.js for PDF via Playwright, and super_inline_html.js for self-contained HTML."
+---
+
+CC Design produces standard HTML files by default — no installation required to build and preview designs in the browser. When you need to share artifacts beyond a browser, three export scripts in the `scripts/` directory cover the most common handoff formats: editable PowerPoint decks, print-ready PDFs, and self-contained HTML bundles that travel without a server.
+
+## The three export formats
+
+<CardGroup cols={3}>
+  <Card title="PPTX" icon="presentation" href="/export/pptx">
+    Editable PowerPoint output for stakeholders who need to adjust slides, update copy, or incorporate the deck into an existing presentation. Uses pptxgenjs to produce native slide elements.
+  </Card>
+  <Card title="PDF" icon="file-text" href="/export/pdf">
+    Print-ready, fixed-layout output with universal compatibility. Playwright renders the page in a headless Chromium browser, so CSS, fonts, and colors are preserved exactly.
+  </Card>
+  <Card title="Inline HTML" icon="code" href="/export/inline-html">
+    A single self-contained HTML file with all assets — CSS, fonts, images — embedded as data URLs. Share over email or as a file attachment with no hosting required.
+  </Card>
+</CardGroup>
+
+## Setup
+
+The PPTX and PDF scripts depend on npm packages. Run `npm install` once inside the `scripts/` directory before using either script.
+
+```bash
+cd scripts && npm install
+```
+
+This installs two dependencies declared in `scripts/package.json`:
+
+| Package | Version | Used by |
+|---|---|---|
+| `pptxgenjs` | `^3.12.0` | `gen_pptx.js` |
+| `playwright` | `^1.53.0` | `gen_pptx.js` (screenshots mode), `open_for_print.js` |
+
+PDF export and PPTX screenshots mode also require the Chromium binary:
+
+```bash
+npx playwright install chromium
+```
+
+<Note>
+  `super_inline_html.js` uses only Node.js built-ins and requires no additional dependencies beyond what is already installed.
+</Note>
+
+## When the skill loads the export reference
+
+The skill's routing table triggers loading of `references/platform-tools.md` whenever the task type is classified as **Export (PPTX/PDF/inline)**. That reference documents exact Playwright MCP tool names and confirms the `npm install` prerequisite — details that are easy to get wrong without an authoritative source.
+
+## HTML output without export scripts
+
+Plain HTML output works immediately without any installation. Open the file directly in a browser or use the Playwright MCP tool `mcp__playwright__browser_navigate` with a `file://` path. The export scripts are only needed when you want to deliver a non-HTML artifact.
+
+## Example workflow
+
+A typical combined workflow — for example, "Tesla-style product reveal deck, then export to PPTX" — follows this sequence:
+
+<Steps>
+  <Step title="Generate HTML">
+    The skill produces a slide deck as an HTML file with `<section>` elements for each slide.
+  </Step>
+  <Step title="Verify in browser">
+    Navigate to the file with Playwright MCP and check for console errors. Take a screenshot to confirm the visual output.
+  </Step>
+  <Step title="Run gen_pptx.js">
+    Export to PPTX using either `editable` or `screenshots` mode.
+
+    ```bash
+    node scripts/gen_pptx.js --input slides.html --output deck.pptx
+    ```
+  </Step>
+  <Step title="Deliver both artifacts">
+    Return the `.html` file for browser viewing and the `.pptx` for editing and presenting in PowerPoint.
+  </Step>
+</Steps>
+
+## Choosing a format
+
+| Goal | Format |
+|---|---|
+| Stakeholders need to edit slides | PPTX (`--mode editable`) |
+| Pixel-perfect slide images in PowerPoint | PPTX (`--mode screenshots`) |
+| Printing or archiving | PDF |
+| Sharing a prototype as a single file | Inline HTML |
+| Live browser preview only | Plain HTML (no export needed) |

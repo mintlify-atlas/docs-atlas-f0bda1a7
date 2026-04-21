@@ -1,0 +1,100 @@
+---
+title: "Install CC Design into your Claude Code skills directory"
+description: "Install CC Design by cloning the repository into your Claude Code skills directory and running npm install to enable PPTX, PDF, and inline HTML export."
+---
+
+CC Design installs into Claude Code's skills directory — a folder Claude Code watches for skill definitions. Once the repository is in place, the skill activates automatically for design-related prompts. Export scripts are optional and installed separately if you need PPTX, PDF, or self-contained HTML output.
+
+## Prerequisites
+
+- Claude Code CLI installed and configured
+- Git available on your system
+- Node.js (for export scripts only)
+
+## Installation methods
+
+### Git clone (recommended)
+
+Clone the repository directly into your Claude Code skills directory:
+
+```bash
+git clone https://github.com/ZeroZ-lab/cc-design.git ~/.claude/skills/cc-design
+```
+
+This is the simplest approach for personal use. Updates are applied by running `git pull` inside the directory.
+
+### Git submodule
+
+If you manage your Claude Code configuration in a git repository, add CC Design as a submodule:
+
+```bash
+git submodule add https://github.com/ZeroZ-lab/cc-design.git skills/cc-design
+```
+
+This lets you pin CC Design to a specific commit and update it as part of your configuration repo workflow.
+
+## Setting up export scripts
+
+The export scripts convert verified HTML artifacts to other formats. They are optional — CC Design produces fully functional HTML output without them.
+
+<Steps>
+  <Step title="Navigate to the scripts directory">
+    Move into the `scripts/` directory inside the cloned skill:
+
+    ```bash
+    cd ~/.claude/skills/cc-design/scripts
+    ```
+  </Step>
+
+  <Step title="Install dependencies">
+    Run `npm install` to install the two export dependencies:
+
+    ```bash
+    npm install
+    ```
+
+    This installs:
+    - `pptxgenjs` ^3.12.0 — generates editable PowerPoint files from HTML
+    - `playwright` ^1.53.0 — drives Chromium for PDF export and screenshot verification
+  </Step>
+
+  <Step title="Install the Chromium browser">
+    Playwright requires a Chromium binary for PDF export via `open_for_print.js`. Install it with:
+
+    ```bash
+    npx playwright install chromium
+    ```
+
+    <Note>
+      This step is only needed if you plan to export PDFs. The `gen_pptx.js` (PPTX export) and `super_inline_html.js` (inline HTML) scripts do not require Chromium.
+    </Note>
+  </Step>
+</Steps>
+
+## What the scripts do
+
+Once installed, three export scripts are available in `scripts/`:
+
+| Script | Command | Output |
+|---|---|---|
+| `gen_pptx.js` | `npm run pptx` | Editable PowerPoint file from HTML |
+| `open_for_print.js` | `npm run pdf` | PDF via Playwright/Chromium |
+| `super_inline_html.js` | `npm run inline` | Self-contained single-file HTML |
+
+<Info>
+  Export is triggered by asking CC Design to export your artifact after it has been built and verified. The skill handles calling the correct script — you don't run them directly during normal use.
+</Info>
+
+## Verify the installation
+
+After cloning, confirm the skill definition is in place:
+
+```bash
+ls ~/.claude/skills/cc-design/SKILL.md
+```
+
+If the file exists, Claude Code will detect the skill on next launch. No additional configuration is required.
+
+<Tip>
+  Send a design prompt right away to confirm the skill is active: `"Design a simple landing page for a SaaS product"`. CC Design will ask clarifying questions before building — that confirms the skill loaded correctly.
+</Tip>

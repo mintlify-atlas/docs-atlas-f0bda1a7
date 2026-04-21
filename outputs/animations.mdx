@@ -1,0 +1,111 @@
+---
+title: "Build timeline-driven animations and motion studies"
+description: "CC Design produces HTML animations using the Stage/Sprite engine from animations.jsx. Compose timeline sequences and scrub to any frame with built-in controls."
+---
+
+Animation tasks in CC Design use a dedicated timeline engine built into `templates/animations.jsx`. Rather than hand-writing `requestAnimationFrame` loops or CSS keyframe sequences, you compose scenes by placing `<Sprite>` components inside a `<Stage>`, each with a `start` and `end` time in seconds. The `Stage` renders a play/pause button, a scrubber, and a time readout — so you can preview any frame of the animation by dragging the scrubber.
+
+## When animation mode is triggered
+
+CC Design enters animation mode when the task contains keywords like "animated," "animation," or "motion." It loads:
+
+- **`references/starter-components.md`** — documents the animations template and copy command
+- **`references/react-babel-setup.md`** — pinned React 18.3.1 + Babel 7.29.0 CDN scripts with SRI hashes
+- **`templates/animations.jsx`** — copied to the project directory and loaded as a JSX script tag
+
+## The animations.jsx template
+
+The template provides six exports via `Object.assign(window, {...})`:
+
+| Export | Type | Purpose |
+|---|---|---|
+| `Stage` | Component | Root container — fixed canvas with play/pause scrubber |
+| `Sprite` | Component | Time-windowed element that fades in at `start` and out at `end` |
+| `useTime` | Hook | Returns current playhead time in seconds |
+| `useSprite` | Hook | Returns `{ start, end, progress }` for the nearest parent Sprite |
+| `Easing` | Object | `linear`, `easeIn`, `easeOut`, `easeInOut`, `bounce`, `elastic` |
+| `interpolate` | Function | Interpolates between two values using an easing function |
+
+## Stage and Sprite
+
+```jsx
+<Stage duration={5} width={1920} height={1080}>
+  <Sprite start={0} end={2} easing="easeOut">
+    <div style={{ background: 'red', width: 100, height: 100 }}>
+      Fades in at 0s, fades out at 2s
+    </div>
+  </Sprite>
+  <Sprite start={1.5} end={5} easing="easeInOut">
+    <div style={{ fontSize: '64px', color: '#fff' }}>
+      Overlaps with the first sprite
+    </div>
+  </Sprite>
+</Stage>
+```
+
+`Stage` auto-scales the canvas to fit the browser window (with a 10% margin), and the scrubber below the canvas lets you seek to any frame without replaying from the start:
+
+```js
+// From animations.jsx — Stage rendering
+React.createElement('input', {
+  type: 'range', min: 0, max: duration, step: 0.01, value: time,
+  onChange: (e) => setTime(parseFloat(e.target.value)),
+  style: { width: '300px', accentColor: '#fff' }
+})
+```
+
+## Interpolating values over time
+
+Use `useSprite` and `interpolate` to drive CSS properties from the timeline:
+
+```jsx
+function AnimatedCard() {
+  const { progress } = useSprite();
+  const y = interpolate(40, 0, progress, Easing.easeOut);
+  const opacity = interpolate(0, 1, progress, Easing.easeOut);
+
+  return (
+    <div style={{ transform: `translateY(${y}px)`, opacity }}>
+      Card slides up as it fades in
+    </div>
+  );
+}
+```
+
+## Motion design guidance
+
+The right motion style depends on the emotional tone of the piece:
+
+<CardGroup cols={2}>
+  <Card title="Trust / Professional tone">
+    Use subtle, smooth, purposeful motion. Easing should be `easeInOut` or `easeOut`. Avoid bounce or elastic effects. Transitions should be fast (0.2–0.4s) and functional — they communicate state change, not personality.
+  </Card>
+  <Card title="Excitement tone">
+    Use spring-like motion (`bounce` or `elastic` easing), parallax layering, and overlapping Sprites for a sense of energy. Transitions can be slower (0.4–0.8s) and more theatrical. Motion is part of the brand expression.
+  </Card>
+</CardGroup>
+
+<Warning>
+  Animations should be purposeful, not decorative. Every animated element should either guide attention, communicate state, or reinforce the emotional tone. If removing the animation doesn't change what the viewer understands, remove it.
+</Warning>
+
+## Exposing animation controls as tweaks
+
+If the animation is part of a design exploration, CC Design can expose `duration`, easing curve, and element timing as tweaks — real-time controls the user can adjust without editing code. This lets you compare "fast and snappy" vs "slow and cinematic" without maintaining two separate files. See [Tweaks system](/reference/tweaks-system) for details on the controls panel.
+
+## Verification
+
+Before delivering an animation, CC Design presses Play in the browser and verifies:
+
+- The timeline runs from `0s` to `duration` without stalling
+- All Sprites appear and disappear at the correct timestamps
+- The scrubber correctly seeks to any point in the timeline
+- No console errors appear during playback
+
+## Example prompt
+
+```
+Animated loading sequence with 3 states
+```
+
+This generates a `Stage` with three `Sprite` windows — idle spinner, progress bar, and success checkmark — timed to appear sequentially with eased transitions between states.

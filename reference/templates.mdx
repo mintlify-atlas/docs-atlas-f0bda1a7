@@ -1,0 +1,325 @@
+---
+title: "Starter templates reference: frames, decks, and canvas"
+description: "Seven scaffolds ship with CC Design: deck_stage.js, design_canvas.jsx, ios_frame, android_frame, macos_window, browser_window, and animations.jsx for motion."
+---
+
+CC Design ships seven ready-made scaffolds in the `templates/` directory. Copying a template saves you from hand-rolling scaling transforms, device bezels, and animation engines — each of which has subtle edge cases that are easy to get wrong from scratch. Some templates are plain JavaScript loaded with `<script src>`; others are JSX components that require `<script type="text/babel" src>` and the React + Babel CDN setup described in [React and Babel setup](/reference/react-babel-setup).
+
+## How to copy a template
+
+```bash
+cp ~/.claude/skills/cc-design/templates/<component>.<ext> ./<component>.<ext>
+```
+
+Alternatively, use the `Read` tool to read the template file, then `Write` to create a customized copy in your project directory.
+
+## Template overview
+
+| Template | File | Type | When to use |
+|---|---|---|---|
+| `deck_stage` | `deck_stage.js` | Plain JS | Any slide presentation |
+| `design_canvas` | `design_canvas.jsx` | JSX (React) | Side-by-side option grid |
+| `ios_frame` | `ios_frame.jsx` | JSX (React) | iPhone device mockup |
+| `android_frame` | `android_frame.jsx` | JSX (React) | Android device mockup |
+| `macos_window` | `macos_window.jsx` | JSX (React) | macOS window chrome |
+| `browser_window` | `browser_window.jsx` | JSX (React) | Browser window chrome |
+| `animations` | `animations.jsx` | JSX (React) | Timeline animation engine |
+
+---
+
+## `deck_stage.js` — slide presentation stage
+
+Use this for any slide-based presentation. Do not hand-roll the scaling logic — `deck_stage.js` handles a fixed 1920×1080 canvas letterboxed on black using `transform: scale()`, so slides look correct at any viewport size.
+
+**What it provides:**
+- Fixed 1920×1080 canvas with `transform: scale()` letterboxing
+- Keyboard and tap navigation (Arrow keys, Space, Home, End)
+- Slide-count overlay
+- `localStorage` persistence of the current slide position
+- Print-to-PDF (one page per slide via `beforeprint`/`afterprint` events)
+- Auto-tags every slide with `data-screen-label` and `data-om-validate`
+- Posts `{ slideIndexChanged: N }` to the parent window for speaker notes sync
+
+**Usage:** Wrap `<section>` elements as direct children of `<deck-stage>`. Place prev/next controls outside the scaled element so they remain usable at small viewport sizes.
+
+```html
+<!-- Load the component -->
+<script src="deck_stage.js"></script>
+
+<!-- Each <section> is one slide -->
+<deck-stage>
+  <section>Slide 1 content</section>
+  <section>Slide 2 content</section>
+  <section>Slide 3 content</section>
+</deck-stage>
+```
+
+The component's scaling logic:
+
+```js
+_scale() {
+  if (!this.canvas) return;
+  const sx = window.innerWidth / 1920;
+  const sy = window.innerHeight / 1080;
+  const scale = Math.min(sx, sy);
+  this.canvas.style.transform = `scale(${scale})`;
+  this.style.width = '100vw';
+  this.style.height = '100vh';
+  this.style.background = '#000';
+  this.style.overflow = 'hidden';
+}
+```
+
+<Note>
+When adding speaker notes (only when explicitly asked), embed them as JSON in the `<head>` and ensure the page calls `window.postMessage({ slideIndexChanged: N })` on init and on every slide change. `deck_stage.js` does this automatically.
+</Note>
+
+---
+
+## `design_canvas.jsx` — side-by-side option grid
+
+Use this when presenting two or more design variants for comparison. `DesignCanvas` renders children in a responsive CSS grid with optional labels over each cell.
+
+**What it provides:**
+- CSS grid layout that auto-sizes columns (max 3 per row by default)
+- Optional label overlay per cell
+- Configurable `gap` and `columns` props
+- Works with the [tweaks system](/reference/tweaks-system) for real-time variant controls
+
+**Usage:**
+
+```jsx
+<DesignCanvas labels={["Option A", "Option B", "Option C"]}>
+  <div>Option A content</div>
+  <div>Option B content</div>
+  <div>Option C content</div>
+</DesignCanvas>
+```
+
+Key structure from the template:
+
+```jsx
+function DesignCanvas({ labels = [], children, columns, gap = 16 }) {
+  const count = React.Children.count(children);
+  const cols = columns || Math.min(count, 3);
+
+  const canvasStyles = {
+    display: 'grid',
+    gridTemplateColumns: `repeat(${cols}, 1fr)`,
+    gap: `${gap}px`,
+    padding: `${gap}px`,
+    width: '100%',
+    minHeight: '100vh',
+    background: '#f5f5f5',
+    boxSizing: 'border-box',
+  };
+  // ...
+}
+
+Object.assign(window, { DesignCanvas });
+```
+
+---
+
+## `ios_frame.jsx` — iPhone device frame
+
+Use this when the design needs to look like a real iPhone screen. The frame includes a dynamic notch, a status bar with live time and battery, and a home indicator.
+
+**Props:**
+
+| Prop | Default | Description |
+|---|---|---|
+| `color` | `'#000'` | Device background color |
+| `showNotch` | `true` | Show the Dynamic Island notch |
+| `children` | — | App screen content |
+
+**Usage:**
+
+```jsx
+<IOSFrame color="#1a1a2e">
+  <div>Your app screen content here</div>
+</IOSFrame>
+```
+
+The frame auto-computes text contrast for the status bar based on the `color` prop:
+
+```js
+const isLight = color.match(/^#[0-9a-f]{6}$/i)
+  ? (() => {
+      const r = parseInt(color.slice(1,3),16),
+            g = parseInt(color.slice(3,5),16),
+            b = parseInt(color.slice(5,7),16);
+      return (r*299+g*587+b*114)/1000 > 128;
+    })()
+  : false;
+const textColor = isLight ? '#000' : '#fff';
+```
+
+---
+
+## `android_frame.jsx` — Android device frame
+
+Use this when the design needs to look like a real Android phone screen. The frame includes a punch-hole camera cutout, a status bar with live time, and a three-button navigation bar at the bottom.
+
+**Props:**
+
+| Prop | Default | Description |
+|---|---|---|
+| `color` | `'#000'` | Device background color |
+| `children` | — | App screen content |
+
+**Usage:**
+
+```jsx
+<AndroidFrame color="#fff">
+  <div>Your app screen content here</div>
+</AndroidFrame>
+```
+
+The Android frame renders a bottom navigation bar distinct from the iOS home indicator:
+
+```jsx
+React.createElement('div', { style: navBarStyles },
+  React.createElement('div', { style: { ...navBtnStyles, border: 'none', width: '14px', height: '14px' } }),
+  React.createElement('div', { style: navBtnStyles }),
+  React.createElement('div', { style: navBtnStyles })
+)
+```
+
+---
+
+## `macos_window.jsx` — macOS window chrome
+
+Use this when designing a desktop application that needs to appear inside a macOS-style window with traffic lights (close, minimize, fullscreen).
+
+**Props:**
+
+| Prop | Default | Description |
+|---|---|---|
+| `title` | `'Untitled'` | Window title shown in the title bar |
+| `width` | `800` | Window width in pixels |
+| `height` | `600` | Window height in pixels |
+| `background` | `'#fff'` | Content area background color |
+| `children` | — | Window content |
+
+**Usage:**
+
+```jsx
+<MacOSWindow title="My App" width={1200} height={800}>
+  <div>Window content</div>
+</MacOSWindow>
+```
+
+The traffic lights use the standard macOS colors:
+
+```js
+const dotStyles = (color) => ({
+  width: '12px',
+  height: '12px',
+  borderRadius: '50%',
+  background: color,
+  border: '0.5px solid rgba(0,0,0,0.12)',
+});
+
+// Rendered as:
+React.createElement('div', { style: dotStyles('#FF5F56') }), // close
+React.createElement('div', { style: dotStyles('#FFBD2E') }), // minimize
+React.createElement('div', { style: dotStyles('#27C93F') }), // fullscreen
+```
+
+---
+
+## `browser_window.jsx` — browser window chrome
+
+Use this when designing a web application that needs to appear inside a browser window with a tab bar and URL bar.
+
+**Props:**
+
+| Prop | Default | Description |
+|---|---|---|
+| `url` | `'https://example.com'` | URL displayed in the address bar |
+| `width` | `1024` | Window width in pixels |
+| `height` | `768` | Window height in pixels |
+| `background` | `'#fff'` | Content area background color |
+| `children` | — | Page content |
+
+**Usage:**
+
+```jsx
+<BrowserWindow url="https://myapp.com/dashboard" width={1440} height={900}>
+  <div>Page content</div>
+</BrowserWindow>
+```
+
+The template derives the tab label from the URL automatically:
+
+```js
+url.replace(/^https?:\/\//, '').split('/')[0]
+```
+
+---
+
+## `animations.jsx` — timeline animation engine
+
+Use this for motion design output, animated video prototypes, or any design where elements need to appear, move, and disappear on a timeline.
+
+**What it provides:**
+- `<Stage duration width height>` — auto-scaling canvas with play/pause controls and a scrubber
+- `<Sprite start end easing>` — timeline-positioned element with auto fade in/out
+- `useTime()` — hook returning the current playhead position in seconds
+- `useSprite()` — hook returning `{ start, end, progress, easing }` for the enclosing Sprite
+- `Easing` — `linear`, `easeIn`, `easeOut`, `easeInOut`, `bounce`, `elastic`
+- `interpolate(start, end, progress, easing)` — numeric interpolation helper
+
+**Usage:**
+
+```jsx
+<Stage duration={5} width={1920} height={1080}>
+  <Sprite start={0} end={2} easing="easeOut">
+    <div style={{ background: 'red', width: 100, height: 100 }}>Fade in</div>
+  </Sprite>
+  <Sprite start={2} end={5} easing="easeInOut">
+    <div style={{ background: 'blue', width: 100, height: 100 }}>Fade in later</div>
+  </Sprite>
+</Stage>
+```
+
+The `interpolate` helper and custom animation logic inside a Sprite:
+
+```jsx
+function MyAnimatedBox() {
+  const { progress } = useSprite();
+  const x = interpolate(0, 500, progress, Easing.easeInOut);
+  return <div style={{ transform: `translateX(${x}px)` }}>Moving box</div>;
+}
+```
+
+`Stage` handles auto-scaling relative to the viewport:
+
+```js
+const [scale, setScale] = React.useState(
+  Math.min(window.innerWidth / width, window.innerHeight / height) * 0.9
+);
+```
+
+<Tip>
+Only fall back to Popmotion (`https://unpkg.com/popmotion@11.0.5/dist/popmotion.min.js`) if `animations.jsx` genuinely cannot cover your use case. The built-in easing functions and `interpolate` helper cover the vast majority of motion design needs.
+</Tip>
+
+---
+
+## Routing table
+
+CC Design selects a template based on the task type:
+
+| Task type | Template selected |
+|---|---|
+| Slide deck / presentation | `deck_stage.js` |
+| Design variants / option exploration | `design_canvas.jsx` |
+| iOS app mockup | `ios_frame.jsx` |
+| Android app mockup | `android_frame.jsx` |
+| Desktop app (macOS) | `macos_window.jsx` |
+| Web app / landing page mockup | `browser_window.jsx` |
+| Animated video / motion design | `animations.jsx` |
+
+The `design_canvas.jsx` template is also used alongside the [tweaks system](/reference/tweaks-system) when multiple design variants need to be explored in a single file with real-time controls.

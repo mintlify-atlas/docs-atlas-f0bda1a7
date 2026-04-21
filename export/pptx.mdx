@@ -1,0 +1,123 @@
+---
+title: "Export CC Design slide decks to editable PowerPoint"
+description: "Convert any CC Design HTML slide deck to an editable PowerPoint file using gen_pptx.js. Uses pptxgenjs ^3.12.0 to produce slide-for-slide PPTX output."
+---
+
+`gen_pptx.js` converts an HTML slide deck — where each `<section>` element represents one slide — into a `.pptx` file using [pptxgenjs](https://gitbrent.github.io/PptxGenJS/). It supports two rendering modes: `editable` mode extracts headings and paragraphs into native PowerPoint text boxes, and `screenshots` mode captures each slide as a PNG image using a headless Chromium browser. All slides are output at 13.33 × 7.5 inches (16:9 widescreen layout).
+
+## Prerequisites
+
+Install dependencies from the `scripts/` directory before running the script for the first time:
+
+```bash
+cd scripts && npm install
+```
+
+Screenshots mode additionally requires the Chromium browser binary:
+
+```bash
+npx playwright install chromium
+```
+
+<Note>
+  Editable mode can fall back to regex-based HTML parsing if Playwright is not installed, but the DOM-based path (with Playwright) produces more accurate results. Install Playwright to get the best output.
+</Note>
+
+## Usage
+
+```bash
+node scripts/gen_pptx.js --input slides.html --output deck.pptx
+node scripts/gen_pptx.js --input slides.html --output deck.pptx --mode editable
+node scripts/gen_pptx.js --input slides.html --output deck.pptx --mode screenshots
+```
+
+### Arguments
+
+| Flag | Default | Description |
+|---|---|---|
+| `--input` | _(required)_ | Path to the HTML file containing `<section>` slide elements |
+| `--output` | `output.pptx` | Path for the generated `.pptx` file |
+| `--mode` | `editable` | `editable` for native text and shapes; `screenshots` for flat PNG images |
+
+## Rendering modes
+
+<Tabs>
+  <Tab title="editable">
+    Editable mode reads `<h1>`–`<h6>` and `<p>` elements from each `<section>` and creates native PowerPoint text boxes. Background colors set via `style` attributes are applied to the slide background.
+
+    Font sizes scale by heading level: `h1` renders at 44 pt, each subsequent level decreases by 6 pt, with a minimum of 18 pt. Paragraphs render at 18 pt. Text boxes are positioned starting 0.5 inches from the top and stacked vertically.
+
+    This mode is best when stakeholders need to edit slide copy or restyle elements in PowerPoint after export.
+
+    ```bash
+    node scripts/gen_pptx.js --input slides.html --output deck.pptx --mode editable
+    ```
+  </Tab>
+  <Tab title="screenshots">
+    Screenshots mode launches a headless Chromium browser at a 1920 × 1080 viewport, navigates to each `<section>` in turn, captures a PNG screenshot, and embeds it as a full-bleed image on the corresponding slide.
+
+    This mode requires Playwright and produces pixel-perfect output that preserves all CSS, gradients, custom fonts, and layout. The tradeoff is that text in the resulting slides is not editable in PowerPoint.
+
+    ```bash
+    node scripts/gen_pptx.js --input slides.html --output deck.pptx --mode screenshots
+    ```
+
+    <Warning>
+      Screenshots mode requires `playwright` to be installed and `npx playwright install chromium` to have been run. The script exits with an error if Playwright is unavailable.
+    </Warning>
+  </Tab>
+</Tabs>
+
+## Full workflow
+
+The skill's routing table triggers this workflow for tasks classified as **Export (PPTX/PDF/inline)**. For a request like "Tesla-style product reveal deck, then export to PPTX", the skill delivers both a `.html` file and a `.pptx` file.
+
+<Steps>
+  <Step title="Generate the HTML slide deck">
+    The skill produces an HTML file using `<section>` elements as slide containers, with styles applied via inline `style` attributes or embedded CSS.
+  </Step>
+  <Step title="Verify the HTML in the browser">
+    Use the Playwright MCP tool to navigate to the file, check for console errors, and take a screenshot:
+
+    ```bash
+    # Via Playwright MCP
+    mcp__playwright__browser_navigate file:///absolute/path/to/slides.html
+    mcp__playwright__browser_console_messages
+    mcp__playwright__browser_take_screenshot
+    ```
+  </Step>
+  <Step title="Export to PPTX">
+    Run `gen_pptx.js` from the project root. Choose `editable` for stakeholder edits or `screenshots` for visual fidelity:
+
+    <CodeGroup>
+      ```bash editable mode
+      node scripts/gen_pptx.js \
+        --input slides.html \
+        --output deck.pptx \
+        --mode editable
+      ```
+
+      ```bash screenshots mode
+      node scripts/gen_pptx.js \
+        --input slides.html \
+        --output deck.pptx \
+        --mode screenshots
+      ```
+    </CodeGroup>
+  </Step>
+  <Step title="Deliver both files">
+    Return the `.html` file for live browser viewing and the `.pptx` for editing, presenting, or embedding in other decks.
+  </Step>
+</Steps>
+
+## npm script shorthand
+
+The `scripts/package.json` defines a shorthand you can use from within the `scripts/` directory:
+
+```bash
+cd scripts && npm run pptx -- --input ../slides.html --output ../deck.pptx
+```
+
+<Tip>
+  If you omit `--output`, the script writes `output.pptx` in the current working directory.
+</Tip>

@@ -1,0 +1,170 @@
+---
+title: "Playwright MCP browser tools reference for CC Design"
+description: "All 11 Playwright MCP tools used by CC Design: navigate, screenshot, snapshot, evaluate, console messages, click, type, key press, wait, run code, and tabs."
+---
+
+CC Design verifies every artifact before delivery using Playwright MCP — a set of browser automation tools available inside Claude Code. The verification process has three phases: navigate to the file, check for console errors, and capture a screenshot to confirm the visual output. The tools below cover all three phases, plus interactive testing, DOM inspection, and export flows. Playwright MCP must be installed and configured in Claude Code for verification to work.
+
+## The 11 Playwright MCP tools
+
+<AccordionGroup>
+  <Accordion title="mcp__playwright__browser_navigate">
+    Opens a URL in the browser. For local HTML files, use an absolute `file://` path:
+
+    ```
+    file:///absolute/path/to/design.html
+    ```
+
+    This is always the first step in a verification flow.
+  </Accordion>
+  <Accordion title="mcp__playwright__browser_take_screenshot">
+    Captures the current page as a PNG or JPEG image. Supports full-page screenshots and element-level captures. Use this to visually confirm that the rendered output matches the intended design after checking for console errors.
+  </Accordion>
+  <Accordion title="mcp__playwright__browser_snapshot">
+    Returns an accessibility tree snapshot of the current page. This is more useful than a screenshot for understanding DOM structure, checking that labels are correct, and verifying that interactive elements are reachable. Use it when you need to inspect layout or find element references for `browser_click`.
+  </Accordion>
+  <Accordion title="mcp__playwright__browser_evaluate">
+    Executes a JavaScript expression in the context of the live page and returns the result. Use it to read computed styles, check `localStorage` state, or verify that a component rendered its expected output:
+
+    ```js
+    // Check that tweaks were applied
+    getComputedStyle(document.documentElement).getPropertyValue('--primary')
+    ```
+  </Accordion>
+  <Accordion title="mcp__playwright__browser_console_messages">
+    Returns all console messages (log, warn, error, debug) emitted by the page. **This is the most important verification tool.** Every prototype must have zero console errors before delivery. Run this immediately after `browser_navigate`.
+  </Accordion>
+  <Accordion title="mcp__playwright__browser_run_code">
+    Executes a multi-step automation sequence in the browser. Use this for complex interactions that require multiple actions — for example, opening a panel, changing a value, and verifying the result — in a single call.
+  </Accordion>
+  <Accordion title="mcp__playwright__browser_click">
+    Clicks an element identified by a reference from a `browser_snapshot`. Use this to test interactive prototypes: open the tweaks panel, navigate slides, activate states.
+  </Accordion>
+  <Accordion title="mcp__playwright__browser_type">
+    Types text into an input field. Use for form prototypes or any design that includes text entry.
+  </Accordion>
+  <Accordion title="mcp__playwright__browser_press_key">
+    Sends a keyboard event. Use for keyboard shortcuts, Enter to submit a form, Tab to move focus, or Arrow keys to test slide navigation in `deck_stage.js`.
+  </Accordion>
+  <Accordion title="mcp__playwright__browser_wait_for">
+    Waits for specific text to appear or disappear on the page before proceeding. Use after triggering animations or transitions to ensure the DOM has settled before taking a screenshot.
+  </Accordion>
+  <Accordion title="mcp__playwright__browser_tabs">
+    Lists, creates, closes, and switches between browser tabs. Use when testing multi-page flows or when opening a second design for comparison.
+  </Accordion>
+</AccordionGroup>
+
+## Three-phase verification flow
+
+All artifacts follow the same verification sequence:
+
+<Steps>
+  <Step title="Navigate">
+    Open the HTML file using an absolute `file://` path:
+
+    ```
+    mcp__playwright__browser_navigate → file:///path/to/design.html
+    ```
+  </Step>
+  <Step title="Check console">
+    Read all console messages and look for errors or warnings:
+
+    ```
+    mcp__playwright__browser_console_messages
+    ```
+
+    Fix any errors before proceeding. React key warnings, `styles` object collisions, and Babel scope errors all appear here.
+  </Step>
+  <Step title="Capture screenshot">
+    Take a screenshot to confirm the visual output:
+
+    ```
+    mcp__playwright__browser_take_screenshot
+    ```
+
+    If the output does not match the intended design, inspect the DOM with `browser_snapshot`, debug with `browser_evaluate`, and repeat.
+  </Step>
+</Steps>
+
+## Tool mapping by verification task
+
+| Need | Tool |
+|---|---|
+| Open HTML for preview | `mcp__playwright__browser_navigate` |
+| Check console errors | `mcp__playwright__browser_console_messages` |
+| Capture screenshot | `mcp__playwright__browser_take_screenshot` |
+| Inspect DOM structure | `mcp__playwright__browser_snapshot` |
+| Run JS in live page | `mcp__playwright__browser_evaluate` |
+| Multi-step automation | `mcp__playwright__browser_run_code` |
+| Click element | `mcp__playwright__browser_click` |
+| Type into input | `mcp__playwright__browser_type` |
+| Send keyboard event | `mcp__playwright__browser_press_key` |
+| Wait for content change | `mcp__playwright__browser_wait_for` |
+| Manage tabs | `mcp__playwright__browser_tabs` |
+
+## Reading documents
+
+Not all input documents need Playwright. CC Design reads source files using the appropriate tool based on format:
+
+<AccordionGroup>
+  <Accordion title="Markdown, HTML, plaintext, images, PDFs">
+    Read natively using the `Read` tool. No browser required.
+  </Accordion>
+  <Accordion title="PPTX and DOCX files">
+    These are ZIP archives containing XML. Extract and parse them using bash:
+
+    ```bash
+    # Extract a PPTX
+    unzip presentation.pptx -d presentation_extracted/
+
+    # Read slide XML
+    cat presentation_extracted/ppt/slides/slide1.xml
+    ```
+
+    The same approach works for DOCX: extract and read `word/document.xml`.
+  </Accordion>
+</AccordionGroup>
+
+## Export scripts
+
+Export scripts live in the skill's `scripts/` directory. The first run requires installing dependencies:
+
+```bash
+cd scripts && npm install && cd ..
+```
+
+For Playwright-backed export flows (screenshots mode PPTX, PDF), also install the browser binary:
+
+```bash
+npx playwright install chromium
+```
+
+### PPTX export
+
+```bash
+node scripts/gen_pptx.js --input slides.html --output deck.pptx --mode screenshots
+# --mode editable    → native text and shapes
+# --mode screenshots → flat images, pixel-perfect (requires Playwright)
+```
+
+### Self-contained HTML
+
+```bash
+node scripts/super_inline_html.js --input page.html --output page-inline.html
+# Bundles HTML + all linked CSS/JS/images into a single file
+```
+
+### Print to PDF
+
+```bash
+node scripts/open_for_print.js --input page.html --output page.pdf
+# Uses Playwright to render and export as PDF
+```
+
+## Playwright MCP requirement
+
+Playwright MCP must be installed and configured in Claude Code before the verification tools are available. Without it, `browser_navigate`, `browser_console_messages`, and `browser_take_screenshot` will not resolve, and verification cannot complete.
+
+<Warning>
+If Playwright MCP is not available in your Claude Code environment, the three-phase verification flow cannot run. Install Playwright MCP and confirm it appears in the allowed-tools list before starting design tasks that require verification.
+</Warning>

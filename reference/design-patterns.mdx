@@ -1,0 +1,615 @@
+---
+title: "Proven layout and component patterns for CC Design"
+description: "Hero, grid, pricing, and nav patterns with ready-to-use CSS. Case studies from Stripe, Linear, and Notion illustrate how production products apply each pattern."
+---
+
+The design patterns library gives you battle-tested layouts and components with ready-to-use CSS. Rather than reinventing layouts from scratch — and doing it poorly — you apply proven structures that produce reliably high-quality results. Deviating from these patterns should be an intentional creative decision, not an accidental omission.
+
+## When this reference is loaded
+
+CC Design loads `design-patterns.md` alongside `case-studies/README.md` for tasks classified as "high-quality output needed" in the routing table: landing pages, product pages, dashboards, and any UI where layout correctness matters. For purely experimental creative work where breaking conventions is the goal, these patterns are a starting point to knowingly depart from, not a cage.
+
+<Note>
+  Every pattern below assumes a CSS custom property design system is already in place. If your project has no tokens yet, see [Create and use design systems](/reference/design-systems) first.
+</Note>
+
+## Hero section patterns
+
+The hero is the first thing users see. It must communicate the core value proposition in under 3 seconds.
+
+<AccordionGroup>
+  <Accordion title="Pattern 1: Center-aligned">
+    **When to use:** Product announcements, landing pages with a single strong message, presentations
+
+    One message, centered, with the visual below the text. Keeps attention fully on the value proposition before revealing proof.
+
+    ```css
+    .hero-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 80px 24px 64px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .hero-center h1 {
+      font-size: clamp(40px, 6vw, 72px);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+    .hero-center .subtitle {
+      font-size: clamp(18px, 2.5vw, 22px);
+      line-height: 1.5;
+      color: var(--color-muted);
+      max-width: 600px;
+      margin-bottom: 32px;
+    }
+    .hero-center .overline {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-primary);
+      margin-bottom: 16px;
+    }
+    ```
+
+    **Tips:** headline under 10 words; subtitle 1–2 sentences; visual or screenshot with subtle shadow or frame
+  </Accordion>
+
+  <Accordion title="Pattern 2: Split-screen">
+    **When to use:** Products with strong visual assets, features with screenshots, SaaS landing pages
+
+    Text on the left, visual on the right. Text side takes 45–55% of width. Collapses to single column on mobile with visual below text.
+
+    ```css
+    .hero-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+      padding: 80px 48px;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+    .hero-split .content { max-width: 520px; }
+    .hero-split h1 {
+      font-size: clamp(36px, 4vw, 56px);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+    .hero-split .visual {
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+    }
+    @media (max-width: 768px) {
+      .hero-split {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding: 48px 24px;
+      }
+    }
+    ```
+
+    **Tips:** give the visual slight perspective or depth (shadow, subtle rotation); text column is the anchor
+  </Accordion>
+
+  <Accordion title="Pattern 3: Full-screen visual">
+    **When to use:** Creative work, portfolios, event pages, high-impact announcements
+
+    Full-bleed background with text overlaid. Always add a gradient overlay for readability. Keep text minimal — the image carries the message.
+
+    ```css
+    .hero-fullscreen {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: white;
+      overflow: hidden;
+    }
+    .hero-fullscreen .bg {
+      position: absolute;
+      inset: 0;
+      background: center/cover no-repeat;
+      z-index: 0;
+    }
+    .hero-fullscreen .bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.4) 0%,
+        rgba(0,0,0,0.6) 100%
+      );
+    }
+    .hero-fullscreen .content {
+      position: relative;
+      z-index: 1;
+      max-width: 700px;
+      padding: 24px;
+    }
+    .hero-fullscreen h1 {
+      font-size: clamp(48px, 7vw, 80px);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Pattern 4: Card grid hero">
+    **When to use:** Multi-product showcases, feature overviews, dashboards
+
+    Headline + subtitle above a grid of feature cards. Each card needs a visual anchor (icon, illustration). 3 cards makes a clean row; 4 or more should consider 2 rows.
+
+    ```css
+    .hero-cards {
+      padding: 80px 48px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 48px;
+    }
+    .card {
+      padding: 32px;
+      border-radius: 12px;
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      transition: box-shadow 0.2s ease, transform 0.2s ease;
+    }
+    .card:hover {
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+      transform: translateY(-2px);
+    }
+    .card .icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: var(--color-primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Pattern 5: Narrative flow">
+    **When to use:** Storytelling, long-form content, editorial, onboarding flows
+
+    Narrow single column (600–700px) optimized for reading. Uses pull quotes to break up text and visual transitions between sections.
+
+    ```css
+    .narrative {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 80px 24px;
+    }
+    .narrative .chapter-marker {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--color-primary);
+      margin-bottom: 24px;
+    }
+    .narrative p {
+      font-size: 18px;
+      line-height: 1.7;
+      color: var(--color-text);
+      margin-bottom: 24px;
+    }
+    .narrative .pull-quote {
+      font-size: 28px;
+      font-weight: 500;
+      line-height: 1.3;
+      color: var(--color-primary);
+      border-left: 3px solid var(--color-primary);
+      padding-left: 24px;
+      margin: 48px 0;
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Card patterns
+
+Cards are the building blocks of modern UI. Use the right variant for the content type.
+
+<CodeGroup>
+
+```css Minimal card
+.card-minimal {
+  padding: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+.card-minimal h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.card-minimal p {
+  font-size: 14px;
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+```
+
+```css Image card
+.card-image {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+.card-image img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+.card-image .body { padding: 20px; }
+.card-image .tag {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-primary);
+  margin-bottom: 8px;
+}
+```
+
+```css Data card
+.card-data {
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+.card-data .metric {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.card-data .label {
+  font-size: 14px;
+  color: var(--color-muted);
+  margin-bottom: 16px;
+}
+.card-data .trend { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; }
+.card-data .trend.up   { color: var(--color-success); }
+.card-data .trend.down { color: var(--color-error); }
+```
+
+```css Interactive card
+.card-interactive {
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.card-interactive:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
+}
+.card-interactive .arrow {
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: all 0.2s ease;
+}
+.card-interactive:hover .arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+```
+
+</CodeGroup>
+
+## Button and CTA patterns
+
+Buttons must have a clear visual hierarchy: primary > secondary > tertiary. Never make secondary buttons compete visually with primary buttons.
+
+<CodeGroup>
+
+```css Button hierarchy
+/* Primary: for the main action */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+  background: var(--color-primary);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-primary:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 4px 12px color-mix(in oklch, var(--color-primary) 30%, transparent);
+}
+
+/* Secondary: for supporting actions */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-secondary:hover {
+  background: var(--color-bg);
+  border-color: var(--color-text);
+}
+
+/* Tertiary: for low-priority actions */
+.btn-tertiary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.btn-tertiary:hover { color: var(--color-text); }
+```
+
+```css Banner CTA
+.cta-banner {
+  background: var(--color-primary);
+  color: white;
+  padding: 48px;
+  border-radius: 16px;
+  text-align: center;
+  margin: 80px auto;
+  max-width: 900px;
+}
+.cta-banner h2 {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.cta-banner p {
+  font-size: 18px;
+  opacity: 0.85;
+  margin-bottom: 24px;
+}
+.cta-banner .btn {
+  background: white;
+  color: var(--color-primary);
+  padding: 14px 28px;
+  border-radius: 8px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+```
+
+</CodeGroup>
+
+## Navigation and section patterns
+
+<CodeGroup>
+
+```css Top navigation
+.nav-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 48px;
+  border-bottom: 1px solid var(--color-border);
+  background: color-mix(in oklch, var(--color-bg) 80%, transparent);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.nav-top .links {
+  display: flex;
+  gap: 32px;
+  list-style: none;
+}
+.nav-top .links a {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-muted);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.nav-top .links a:hover  { color: var(--color-text); }
+.nav-top .links a.active { color: var(--color-primary); }
+```
+
+```css Feature section
+.feature-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: center;
+  padding: 80px 48px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+/* Alternate: even sections reverse column order */
+.feature-section:nth-child(even) { direction: rtl; }
+.feature-section:nth-child(even) > * { direction: ltr; }
+```
+
+```css Stats section
+.stats-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 48px;
+  padding: 64px 48px;
+  text-align: center;
+}
+.stat-item .number {
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-primary);
+  margin-bottom: 8px;
+}
+.stat-item .label {
+  font-size: 15px;
+  color: var(--color-muted);
+}
+```
+
+```css Testimonial
+.testimonial {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 80px 24px;
+  text-align: center;
+}
+.testimonial blockquote {
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.5;
+  font-style: italic;
+  color: var(--color-text);
+  margin-bottom: 24px;
+}
+.testimonial .author {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.testimonial .avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--color-border);
+}
+```
+
+</CodeGroup>
+
+## Responsive breakpoints
+
+Every grid pattern must collapse to a single column below 768px. No horizontal scrolling, ever.
+
+```css
+/* Mobile first — add complexity upward */
+@media (min-width: 640px)  { /* sm: tablets */ }
+@media (min-width: 768px)  { /* md: small laptops */ }
+@media (min-width: 1024px) { /* lg: desktops */ }
+@media (min-width: 1280px) { /* xl: large screens */ }
+```
+
+## Case studies
+
+The case studies library sits at `references/case-studies/` and is loaded alongside this reference for high-quality tasks. It contains real design analyses organized by category.
+
+<AccordionGroup>
+  <Accordion title="Product pages">
+    High-converting landing pages from leading SaaS companies. Each study extracts what makes the design effective and provides reusable patterns.
+
+    | Case study | Lesson |
+    | --- | --- |
+    | Stripe Homepage | Trust through clarity — minimal color, strong typographic hierarchy, data-backed social proof |
+    | Linear Features | Modern minimalism — tight grid, monochromatic palette, feature screenshots with consistent framing |
+    | Notion Landing | Playful professionalism — warm palette, illustrated hero, benefit-led feature rows |
+
+    **Read these when:** building a SaaS landing page, designing a feature page, or choosing between center-aligned vs split-screen hero patterns.
+  </Accordion>
+
+  <Accordion title="Presentations">
+    Slide decks that maintain attention and convey key points effectively.
+
+    | Case study | Lesson |
+    | --- | --- |
+    | Pitch Deck Example | Investor-ready structure — one claim per slide, data first, narrative arc |
+    | Keynote Style | Apple-inspired visual rhythm — full-bleed imagery, single-word headlines, slow reveal |
+    | Data Story | Making numbers memorable — large metric as hero, supporting context below, color to signal change |
+
+    **Read these when:** designing a pitch deck, creating data visualizations, or structuring a multi-slide narrative.
+  </Accordion>
+
+  <Accordion title="Mobile apps">
+    Mobile-first UI patterns that prioritize touch interaction and clarity.
+
+    | Case study | Lesson |
+    | --- | --- |
+    | iOS Onboarding | Progressive disclosure — one question per screen, bottom-anchored CTAs, generous illustrations |
+    | Android Dashboard | Information density — card grid with clear data hierarchy, bottom navigation, collapsible sections |
+    | Mobile Checkout | Frictionless conversion — minimal fields, inline validation, persistent order summary |
+
+    **Read these when:** designing mobile UI mockups, building onboarding flows, or optimizing touch target layout.
+  </Accordion>
+
+  <Accordion title="Creative works">
+    Award-winning designs that push boundaries while maintaining usability.
+
+    | Case study | Lesson |
+    | --- | --- |
+    | Awwwards Winner | Bold experimental layout — broken grid, large typographic contrast, scroll-driven reveals |
+    | Portfolio Site | Personal brand expression — distinctive type, limited palette, intentional whitespace |
+    | Interactive Story | Scroll-driven narrative — section transitions as storytelling, parallax depth, no nav chrome |
+
+    **Read these when:** designing creative portfolios, experimenting with scroll interactions, or building editorial layouts.
+  </Accordion>
+</AccordionGroup>
+
+### Shared qualities across all featured designs
+
+Every case study in the library exhibits these five properties. Use them as your quality bar:
+
+1. **Clear hierarchy** — you know where to look first
+2. **Intentional whitespace** — breathing room guides attention
+3. **Consistent system** — colors, fonts, and spacing follow rules
+4. **Emotional resonance** — the design feels appropriate for its purpose
+5. **Technical excellence** — no errors, responsive, accessible
+
+### How to reference patterns in design prompts
+
+When asking CC Design to apply a specific pattern, name it directly:
+
+- "Use the split-screen hero pattern with the product screenshot on the right"
+- "Apply the card grid hero with 3 feature cards and icon anchors"
+- "Follow the Stripe homepage case study for the social proof section"
+- "Use the stats section pattern with 4 metrics above the feature rows"
+
+The more specific the reference, the less decision-making overhead CC Design has to carry.
+
+<Tip>
+  For multi-section pages, combine patterns explicitly: "center-aligned hero → stats section → alternating feature sections → banner CTA → footer". This gives CC Design a complete layout blueprint before writing any code.
+</Tip>

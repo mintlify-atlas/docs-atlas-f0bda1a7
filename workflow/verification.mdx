@@ -1,0 +1,120 @@
+---
+title: "Three-phase verification protocol using Playwright MCP"
+description: "CC Design verification runs three Playwright phases: structural, visual screenshot, and design excellence. All three must pass before an artifact is delivered."
+---
+
+Every CC Design artifact passes through three sequential verification phases before it is delivered. The phases run in a strict order: structural first, then visual, then design excellence. A failure in any phase sends control back to the Build step — verification does not advance until the current phase is fully clean. This protocol is defined in `references/verification-protocol.md` and is loaded at the start of every Verify step.
+
+## Playwright MCP tools used
+
+Verification is performed using live browser execution via the Playwright MCP. The tools used across all three phases are:
+
+| Tool | Purpose |
+|---|---|
+| `browser_navigate` | Load the artifact in the browser before each verification pass |
+| `browser_console_messages` | Read console output at `error` and `warning` levels |
+| `browser_snapshot` | Capture the accessibility tree to verify element presence and structure |
+| `browser_evaluate` | Run JavaScript in the page context to inspect computed properties |
+| `browser_take_screenshot` | Capture a full-page screenshot for visual review |
+
+## Phase 1: Structural verification
+
+Structural checks must pass before any visual review begins. A visually broken layout is often a symptom of a structural error, not a root cause — fixing the root cause first prevents wasted visual iteration.
+
+| Check | Method | Pass criteria |
+|---|---|---|
+| Console errors | `browser_console_messages` at level `error` | 0 errors |
+| Console warnings | `browser_console_messages` at level `warning` | 0 warnings about missing resources |
+| Layout structure | `browser_snapshot` | All expected elements present in the accessibility tree |
+| Fixed-size scaling | `browser_evaluate` — check `deck_stage` or stage transform | Content fills intended viewport without overflow |
+| Asset loading | `browser_evaluate` — check `document.querySelectorAll('[src],[href]')` | No broken links (404) |
+
+```
+browser_console_messages → level: error
+browser_console_messages → level: warning
+```
+
+<Warning>
+  If Phase 1 has any failure: fix the issue, re-navigate the page, and re-run Phase 1. Do not proceed to Phase 2 until Phase 1 passes clean.
+</Warning>
+
+## Phase 2: Visual verification
+
+Visual checks require human judgment applied to a screenshot. `browser_take_screenshot` captures the full page; each criterion below is reviewed against that image.
+
+| Check | Method | Pass criteria |
+|---|---|---|
+| Screenshot captured | `browser_take_screenshot` | Screenshot taken successfully |
+| Typography | Visual check on screenshot | Headings distinct from body; no text below 12pt (print) or 24px (1080p slides) |
+| Alignment | Visual check on screenshot | Elements aligned to grid; consistent margins; no drift |
+| Contrast | Visual check on screenshot | Text readable against background; no low-contrast pairs |
+| Spacing | Visual check on screenshot | Consistent spacing tokens; no arbitrary gaps |
+| Tweaks panel | Visual check (if applicable) | Toggle visible; panel functional; no UI artifacts when hidden |
+| Content | Visual check on screenshot | No placeholder text left in; no filler content |
+
+```
+1. browser_take_screenshot → capture full page
+2. Review screenshot against criteria above
+3. If any criterion fails → fix in Build step, re-verify from Phase 1
+4. If all pass → proceed to Phase 3
+```
+
+## Phase 3: Design excellence
+
+The design excellence phase checks that the artifact satisfies the intent decisions made in the Design intent step. This is not a pass/fail checklist — it is a quality judgment applied against the four dimensions of excellent design.
+
+<CardGroup cols={2}>
+  <Card title="Hierarchy clarity" icon="list-ordered">
+    The most important element is clearly dominant — significantly larger or higher-contrast than supporting elements. The eye has an unambiguous starting point in each section.
+  </Card>
+  <Card title="Spacing consistency" icon="ruler">
+    Spacing follows a deliberate scale. Related elements are close; unrelated elements are separated. The ratio between within-group and between-group spacing is 2–3×.
+  </Card>
+  <Card title="Color harmony" icon="swatch-book">
+    No more than one "loud" element per section. The palette uses a consistent base with intentional accent usage. Colors are drawn from the design system or generated with `oklch` for perceptual consistency.
+  </Card>
+  <Card title="Emotional fit" icon="heart">
+    The visual tone matches the audience and purpose — Trust for financial contexts, Excitement for consumer and entertainment, Professional for B2B tools, Creative for portfolio and agency work.
+  </Card>
+</CardGroup>
+
+## The fix-and-re-verify loop
+
+The verification loop is strict. Skipping Phase 1 to "just check visuals" is not permitted — structural errors cause visual defects that are symptoms, not root causes.
+
+```
+Phase 1 fail → fix → re-navigate → Phase 1 again
+Phase 2 fail → fix → re-navigate → Phase 1 + Phase 2 again
+Phase 3 fail → fix → re-navigate → Phase 1 + Phase 2 + Phase 3 again
+```
+
+The loop repeats until all three phases pass in sequence. Only then does control advance to the Deliver step.
+
+## Output contracts verified during this step
+
+All six output contracts from the [workflow overview](/workflow/overview) are evaluated during the Verify step. The contracts map directly to verification phase checks:
+
+| Output contract | Verified in |
+|---|---|
+| No console errors | Phase 1 — `browser_console_messages` |
+| Screenshot verified | Phase 2 — `browser_take_screenshot` |
+| Descriptive filename | Phase 2 — content review |
+| Fixed-size content scales | Phase 1 — `browser_evaluate` on stage transform |
+| Tweaks panel present | Phase 2 — visual check on screenshot |
+| Design quality | Phase 3 — design excellence review |
+
+## Slide and screen labels
+
+For slide decks and multi-screen prototypes, `[data-screen-label]` attributes must be present on every slide or screen element. Labels are 1-indexed and include a number plus a short title:
+
+```html
+<div class="slide" data-screen-label="01 Title">...</div>
+<div class="slide" data-screen-label="02 Agenda">...</div>
+<div class="slide" data-screen-label="03 Problem">...</div>
+```
+
+When a user refers to "slide 5", they mean the fifth slide by label — not array position `[4]`. The `data-screen-label` attribute is the source of truth for slide numbering and is checked during the Phase 2 content review.
+
+<Tip>
+  The verification protocol is intentionally strict because it is cheaper to catch defects before delivery than after. A 30-second re-verify loop is faster than a round-trip clarification with the user.
+</Tip>

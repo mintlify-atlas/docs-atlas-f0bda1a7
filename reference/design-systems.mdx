@@ -1,0 +1,277 @@
+---
+title: "Create and use DESIGN.md token systems in CC Design"
+description: "CC Design reads and writes DESIGN.md files with color, typography, spacing, and component tokens. Build from scratch or clone a brand system from getdesign.md."
+---
+
+In CC Design, a design system is not a Figma library or a component framework — it is a `DESIGN.md` file at the root of your project that encodes color tokens, typography scale, spacing, border radius, shadows, and component patterns as CSS custom properties. Every artifact CC Design builds reads this file first, so the resulting HTML inherits your visual language automatically rather than defaulting to generic web tropes.
+
+## When this reference is loaded
+
+The routing table in `SKILL.md` loads `references/design-system-creation.md` when the task type is **"Design system creation"**: when you ask CC Design to create a design system, build a CSS variable system, define a token structure, or establish visual consistency across multiple artifacts. If your project already has a `DESIGN.md`, token files, or an existing CSS variable system, this reference is skipped — CC Design reads what is already there.
+
+## Two paths to a design system
+
+<Tabs>
+  <Tab title="Create from scratch">
+    Use this path when starting a new project with no existing brand constraints. CC Design will prompt you for a starting point (brand name, emotional tone, one identity color) and generate a complete `DESIGN.md` covering all five token categories.
+
+    A minimal design system requires exactly five token categories. Each uses CSS custom properties with the naming convention `--{category}-{property}-{variant}`.
+
+    <Steps>
+      <Step title="Color tokens">
+        Three groups: identity (brand palette), neutral (structural palette), and semantic (purpose-specific).
+
+        ```css
+        :root {
+          /* Identity — the brand palette */
+          --color-primary:       oklch(0.55 0.18 55);   /* Main accent */
+          --color-primary-light: oklch(0.85 0.08 55);   /* Hover, badges */
+          --color-primary-dark:  oklch(0.35 0.20 55);   /* Active states */
+
+          /* Neutral — the structural palette */
+          --color-bg:      oklch(0.98 0.01 55);   /* Page background */
+          --color-surface: oklch(0.95 0.02 55);   /* Card background */
+          --color-border:  oklch(0.80 0.02 55);   /* Lines, dividers */
+          --color-text:    oklch(0.15 0.02 55);   /* Primary text */
+          --color-muted:   oklch(0.60 0.04 55);   /* Secondary text */
+
+          /* Semantic — purpose-specific */
+          --color-success: oklch(0.55 0.15 150);
+          --color-warning: oklch(0.70 0.15 85);
+          --color-error:   oklch(0.55 0.20 25);
+        }
+        ```
+
+        CC Design uses [oklch](/reference/design-excellence#emotional-design-the-4-tone-profiles) for all color tokens because it ensures perceptual uniformity — colors feel equally bright and saturated to human eyes, which RGB and hex do not guarantee.
+      </Step>
+
+      <Step title="Typography tokens">
+        Font families, a size scale, weight values, and line-height values.
+
+        ```css
+        :root {
+          --font-primary:   'DM Sans', sans-serif;
+          --font-secondary: 'Source Serif 4', serif;
+
+          --text-xs:   12px;  --text-sm:  14px;  --text-base: 16px;
+          --text-lg:   20px;  --text-xl:  24px;  --text-2xl:  32px;
+          --text-3xl:  40px;  --text-4xl: 56px;
+
+          --weight-normal: 400;  --weight-medium: 500;  --weight-bold: 700;
+          --leading-tight: 1.2;  --leading-normal: 1.5; --leading-relaxed: 1.8;
+        }
+        ```
+      </Step>
+
+      <Step title="Spacing tokens">
+        An 8px base grid scaled by multiples of 4px. Every layout value in every component must map to a token from this scale.
+
+        ```css
+        :root {
+          --space-1: 4px;   /* Icon gaps, tight inline */
+          --space-2: 8px;   /* Button padding, list items */
+          --space-3: 16px;  /* Card padding, section gaps */
+          --space-4: 24px;  /* Section padding, card margins */
+          --space-5: 32px;  /* Page margins, hero spacing */
+          --space-6: 48px;  /* Section breaks */
+          --space-7: 64px;  /* Full-bleed separators */
+        }
+        ```
+      </Step>
+
+      <Step title="Shadow tokens">
+        Choose one shadow level per project. Mixing shadow styles on the same page creates visual inconsistency.
+
+        ```css
+        :root {
+          --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+          --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+          --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+        }
+        ```
+      </Step>
+
+      <Step title="Border radius tokens">
+        ```css
+        :root {
+          --radius-sm:   4px;
+          --radius-md:   8px;
+          --radius-lg:   12px;
+          --radius-xl:   20px;
+          --radius-full: 9999px;
+        }
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="Clone from getdesign.md">
+    Use this path when you want CC Design to match an existing brand's visual language — Stripe, Linear, Vercel, Notion, and others. When a brand name appears in your request, CC Design classifies the task as a **"Brand style clone"** and loads `references/getdesign-loader.md` to fetch the brand's palette, typography, and spacing patterns.
+
+    After fetching the style, you can ask CC Design to persist it:
+
+    > "Save this as our project's design system"
+
+    CC Design will write the extracted tokens to `DESIGN.md` at your project root, so all future artifacts automatically inherit the brand style without re-fetching.
+
+    <Note>
+      Brand style clones adapt the visual language — they do not reproduce copyrighted assets. Colors, type scales, and spacing patterns are technical descriptions, not owned property.
+    </Note>
+  </Tab>
+</Tabs>
+
+## Context acquisition
+
+Before building any artifact, CC Design searches the workspace for design system files in this order:
+
+1. `DESIGN.md` at the project root
+2. Token files (any `.css` or `.json` file containing `--color-` or `--space-` custom properties)
+3. Existing HTML or CSS files with repeated hardcoded values
+
+If a design system is found, CC Design reads it and reuses its visual vocabulary. If none is found and the user has not provided a starting point, CC Design will ask before proceeding — defaulting to generic web aesthetics violates the anti-slop rules in `SKILL.md`.
+
+## Reverse extraction
+
+When a project has existing HTML but no design system, CC Design can extract tokens from the existing code:
+
+<Steps>
+  <Step title="Read the HTML file">
+    CC Design reads the file and identifies repeated values.
+  </Step>
+  <Step title="Identify patterns">
+    Finds repeated colors, font sizes, and spacing values using extraction patterns:
+
+    ```bash
+    # Find repeated colors
+    grep -oP '#[0-9a-fA-F]{3,8}' page.html | sort | uniq -c | sort -rn
+
+    # Find repeated font-size values
+    grep -oP 'font-size:\s*\d+px' page.html | sort | uniq -c | sort -rn
+
+    # Find repeated spacing values
+    grep -oP '(padding|margin|gap):\s*\d+px' page.html | sort | uniq -c | sort -rn
+    ```
+  </Step>
+  <Step title="Group into token categories">
+    Groups values into the five categories: color, typography, spacing, shadow, border radius.
+  </Step>
+  <Step title="Replace hardcoded values">
+    Replaces all instances with `var(--token-name)` references.
+  </Step>
+  <Step title="Verify visual identity">
+    Confirms the design looks identical after extraction before writing `DESIGN.md`.
+  </Step>
+</Steps>
+
+## Component library
+
+After defining tokens, build base components using only tokens — no hardcoded values. This is what makes the system maintainable: changing a token propagates everywhere.
+
+| Component | Required variants | Key tokens used |
+| --- | --- | --- |
+| Button | primary, secondary, ghost | `--color-primary`, `--radius-md`, `--space-2` |
+| Card | default, elevated | `--shadow-md`, `--radius-lg`, `--space-3` |
+| Input | default, focused, error | `--color-border`, `--radius-sm`, `--color-error` |
+| Badge | neutral, success, warning, error | `--radius-full`, semantic colors |
+| Heading | h1–h4 | `--text-4xl` to `--text-xl`, `--weight-bold` |
+| Body text | base, small, large | `--text-base`, `--text-sm`, `--text-lg` |
+
+A token-only button example:
+
+```css
+.btn-primary {
+  background:    var(--color-primary);
+  color:         var(--color-bg);
+  padding:       var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-family:   var(--font-primary);
+  font-weight:   var(--weight-medium);
+  border: none;
+  cursor: pointer;
+}
+.btn-primary:hover  { background: var(--color-primary-light); }
+.btn-primary:active { background: var(--color-primary-dark); }
+```
+
+## Naming convention
+
+All tokens follow a strict pattern: `--{category}-{property}-{variant}`
+
+| Good | Bad | Why |
+| --- | --- | --- |
+| `--color-primary-dark` | `--blue` | Semantic-free names break when values change |
+| `--text-xl` | `--big-text` | No indication of scale position |
+| `--shadow-lg` | `--shadow1` | No indication of size relationship |
+| `--radius-md` | `--rounded` | Ambiguous; how round is "rounded"? |
+
+## How to structure DESIGN.md
+
+A well-structured `DESIGN.md` starts with a one-paragraph brand description (tone, audience, emotional intent), followed by the five token groups in order: color, typography, spacing, shadows, border radius. Then it documents component patterns with token references.
+
+```markdown
+# DESIGN.md — [Project Name]
+
+[Brand description: tone, audience, emotional intent]
+
+## Colors
+[Color token CSS block]
+
+## Typography
+[Font imports + typography token CSS block]
+
+## Spacing
+[Spacing token CSS block]
+
+## Shadows
+[Shadow token CSS block — pick one level]
+
+## Border radius
+[Radius token CSS block]
+
+## Component patterns
+[Document button, card, input, badge variants with token-only CSS]
+```
+
+<Tip>
+  The most impactful thing you can do for CC Design quality is write a clear brand description at the top of `DESIGN.md`. "Professional developer tool, dark mode first, monospace identity, minimal color, no decoration" tells CC Design everything it needs to make consistent decisions across all artifacts — colors, fonts, layout density, and motion.
+</Tip>
+
+## Font selection
+
+The design system's typography tokens must reference fonts with actual visual identity. System fonts (Inter, Roboto, Arial) produce generic output. CC Design's recommended font pairings by project type:
+
+| Project type | Primary font | Secondary font | Rationale |
+| --- | --- | --- | --- |
+| Startup / SaaS | DM Sans | Source Serif 4 | Clean geometric + professional serif emphasis |
+| Creative / portfolio | Space Grotesk | Playfair Display | Distinctive geometric + classic serif contrast |
+| Technical / dev tool | JetBrains Mono | Outfit | Monospace identity + modern sans for body |
+| Presentation / deck | Bricolage Grotesque | Instrument Serif | Warm grotesque + elegant serif |
+| Mobile app UI | Plus Jakarta Sans | — | Friendly, legible, touch-optimized |
+| Minimal / editorial | Sora | Cormorant Garamond | Precise sans + refined serif |
+
+<Warning>
+  Fraunces is listed as an acceptable mobile accent font but appears on the anti-slop overused list in `SKILL.md`. Use it sparingly and only as a display accent, never as a body or heading font.
+</Warning>
+
+Load fonts from Google Fonts in the `<head>` of every artifact:
+
+```html
+<link
+  href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Source+Serif+4:wght@400;600&display=swap"
+  rel="stylesheet"
+>
+```
+
+## Color starting points
+
+When no design system exists and no brand color is specified, pick a starting hue based on the project's emotional tone:
+
+| Mood | Hue | Accent value | Use case |
+| --- | --- | --- | --- |
+| Warm | 55 | `oklch(0.55 0.18 55)` | Consumer, lifestyle |
+| Cool | 240 | `oklch(0.55 0.18 240)` | Enterprise, data |
+| Fresh | 150 | `oklch(0.55 0.15 150)` | Health, sustainability |
+| Bold | 25 | `oklch(0.60 0.22 25)` | Entertainment, gaming |
+| Neutral | 0 | `oklch(0.50 0.02 0)` | Dev tools, documentation |
+
+Generate harmonious variants by rotating hue: ±30° for analogous colors, 180° for complement. Keep lightness (L) and chroma (C) consistent across the palette.

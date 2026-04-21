@@ -1,97 +1,87 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "CC Design: AI-powered HTML design skill for Claude Code"
+description: "CC Design is a Claude Code skill for HTML design — prototypes, decks, landing pages — with 68+ brand systems and Playwright screenshot verification."
 ---
 
-## Setting up
+CC Design is a Claude Code skill that turns your AI agent into an expert product designer. It produces polished HTML artifacts — interactive prototypes, slide decks, landing pages, UI mockups, and animations — using a structured 7-step workflow with Playwright-based screenshot verification and access to 68+ brand design systems.
 
-Get your documentation site up and running in minutes.
-
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Clone the skill into your Claude Code directory and install export dependencies in two commands.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Send your first design prompt and get a verified HTML artifact in minutes.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Design Workflow" icon="arrows-spin" href="/workflow/overview">
+    Understand the 7-step pipeline from clarifying requirements to delivering verified artifacts.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Brand Style Cloning" icon="palette" href="/workflow/brand-style-cloning">
+    Load design systems from 68+ brands — Stripe, Vercel, Apple, Linear, and more.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## What you can build
 
-Everything you need to create world-class documentation.
+CC Design covers the full spectrum of HTML design output, from wireframes to production-ready prototypes.
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
+<CardGroup cols={3}>
+  <Card title="Interactive prototypes" icon="desktop" href="/outputs/prototypes">
+    React + Babel inline components with state, routing, and real interactions.
   </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
+  <Card title="Slide decks" icon="presentation-screen" href="/outputs/slide-decks">
+    Fixed-canvas presentations with proper letterboxing and 1-indexed screen labels.
   </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
+  <Card title="Landing pages" icon="browser" href="/outputs/landing-pages">
+    Responsive product pages with proven layout patterns and optional browser chrome.
   </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
+  <Card title="Mobile mockups" icon="mobile" href="/outputs/mobile-mockups">
+    iOS and Android device frames with correct bezel rendering.
   </Card>
-</Columns>
+  <Card title="Animations" icon="film" href="/outputs/animations">
+    Timeline-driven motion studies using the animations template engine.
+  </Card>
+  <Card title="Design systems" icon="swatchbook" href="/reference/design-systems">
+    Token-based visual systems generated from scratch or cloned from existing brands.
+  </Card>
+</CardGroup>
 
-## Need inspiration?
+## How it works
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+<Steps>
+  <Step title="Install the skill">
+    Clone `cc-design` into `~/.claude/skills/` and run `npm install` in the `scripts/` directory to enable export features.
+  </Step>
+  <Step title="Send a design prompt">
+    Describe what you want to design — mention a brand name for style cloning, or describe the output format and content.
+  </Step>
+  <Step title="Skill routes and builds">
+    CC Design classifies your task, loads only the relevant references and templates, acquires context from your project, and builds the HTML artifact.
+  </Step>
+  <Step title="Verify and receive">
+    Three-phase Playwright verification checks for console errors, visual correctness, and design excellence before the file is delivered.
+  </Step>
+</Steps>
+
+## Key capabilities
+
+<AccordionGroup>
+  <Accordion title="Progressive context loading">
+    The main `SKILL.md` stays under 200 lines. Twelve technical reference documents are loaded on demand based on the routing table, keeping context window usage minimal across all task types.
+  </Accordion>
+  <Accordion title="Brand style cloning">
+    Mention any of 68+ brand names (Stripe, Vercel, Notion, Apple, Tesla, Linear…) and the skill fetches that brand's `DESIGN.md` from getdesign.md, extracts colors, typography, and component patterns, and applies them to your artifact.
+  </Accordion>
+  <Accordion title="Tweaks system">
+    When you need multiple design directions, a self-contained in-page controls panel is embedded directly in the HTML. Variants are stored in `localStorage` so exploration happens in one file, not many.
+  </Accordion>
+  <Accordion title="Three-phase verification">
+    Every artifact is verified structurally (no console errors, responsive layout), visually (screenshot review), and for design excellence (hierarchy, spacing, color harmony, emotional fit) before delivery.
+  </Accordion>
+  <Accordion title="Export to PPTX, PDF, and inline HTML">
+    Node.js scripts convert verified HTML to editable PowerPoint, printable PDF via Playwright, or a fully self-contained single-file HTML with all assets inlined.
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+  Visit the [Reference tab](/reference/routing-table) to see the full routing table that maps task types to reference documents and templates — useful for understanding exactly what gets loaded for each design request.
+</Tip>
